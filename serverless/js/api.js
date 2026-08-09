@@ -3,7 +3,7 @@
  */
 
 // Replace this URL with your deployed Google Apps Script Web App URL
-const API_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+const API_URL = "https://script.google.com/macros/s/AKfycbycFBZktVuLe3o8G8jUFEpLPO2SBjgO_t60v16f1kzwro4OLBMoAftON5BuX2XTYP2j1Q/exec";
 
 // Check if user is logged in (Redirect to login if not)
 function checkAuth() {
