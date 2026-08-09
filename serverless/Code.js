@@ -990,6 +990,8 @@ function handleGetLedger(productId, dateFromStr, dateToStr) {
     var goodNC = 0;
     var goodTVI = 0;
     var goodSwapOut = 0;
+    var goodSale = 0;
+    var goodAdjustment = 0;
     
     var defTVO = 0;
     var defSwapIn = 0;
@@ -1031,9 +1033,11 @@ function handleGetLedger(productId, dateFromStr, dateToStr) {
         remarksList.push("Purchased: " + t.qty + " pcs");
       } else if (t.type === 'sale') {
         runningGood -= t.qty;
+        goodSale += t.qty;
         remarksList.push("Sold: " + t.qty + " pcs");
       } else if (t.type === 'adjustment') {
         runningGood += t.qty;
+        goodAdjustment += t.qty;
         remarksList.push(t.remarks);
       }
     });
@@ -1053,11 +1057,11 @@ function handleGetLedger(productId, dateFromStr, dateToStr) {
           open_good: openGood,
           good_purchase: goodPurch,
           good_plant_in: goodPlantIn,
-          good_adjustment: 0,
+          good_adjustment: goodAdjustment,
           good_out_nc: goodNC,
           good_out_tvi: goodTVI,
           good_out_swap: goodSwapOut,
-          good_sale: 0,
+          good_sale: goodSale,
           close_good: closeGood,
           
           open_def: openDef,
