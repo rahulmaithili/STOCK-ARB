@@ -196,7 +196,7 @@
                 const select = document.getElementById('product_id');
                 select.innerHTML = '<option value="" disabled selected>-- Select Regulator Item --</option>';
                 
-                const regulators = response.products.filter(p => p.product_type === 'regulator' || p.product_type === 'ftl_regulator');
+                const regulators = response.products.filter(p => p.product_type === 'regulator');
                 
                 if (regulators.length === 0) {
                     select.innerHTML = '<option value="" disabled>No regulators registered in Sheets.</option>';

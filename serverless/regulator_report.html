@@ -308,7 +308,7 @@
         function populateDropdown() {
             const dropdown = document.getElementById('product_id');
             // Filter regulators only
-            const regulators = globalData.products.filter(p => p.product_type === 'regulator' || p.product_type === 'ftl_regulator');
+            const regulators = globalData.products.filter(p => p.product_type === 'regulator');
             regulators.forEach(r => {
                 const opt = document.createElement('option');
                 opt.value = r.id;

@@ -106,7 +106,7 @@ function handleGetData() {
     if (p.current_stock <= p.reorder_level) {
       lowStockCount++;
     }
-    if (p.product_type === 'regulator' || p.product_type === 'ftl_regulator') {
+    if (p.product_type === 'regulator') {
       defStockInHand += p.defective_stock;
     }
   }

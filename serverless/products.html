@@ -297,7 +297,7 @@
             document.getElementById('product_type').addEventListener('change', function() {
                 const type = this.value;
                 const defBlock = document.getElementById('edit-def-stock-subblock');
-                if (type === 'regulator' || type === 'ftl_regulator') {
+                if (type === 'regulator') {
                     defBlock.classList.remove('d-none');
                 } else {
                     defBlock.classList.add('d-none');
@@ -355,7 +355,7 @@
                     
                     const isLow = parseInt(p.current_stock) <= parseInt(p.reorder_level);
                     const stockLabelClass = isLow ? 'bg-danger text-danger' : 'bg-success text-success';
-                    const isRegulator = p.product_type === 'regulator' || p.product_type === 'ftl_regulator';
+                    const isRegulator = p.product_type === 'regulator';
                     
                     const stockBadge = isRegulator 
                         ? `<div class="fw-semibold text-success">${p.current_stock} OK</div><small class="text-danger">${p.defective_stock || 0} Defect</small>`
@@ -421,7 +421,7 @@
             document.getElementById('current-stock').value = p.current_stock;
             
             const defBlock = document.getElementById('edit-def-stock-subblock');
-            if (p.product_type === 'regulator' || p.product_type === 'ftl_regulator') {
+            if (p.product_type === 'regulator') {
                 defBlock.classList.remove('d-none');
                 document.getElementById('defective_stock').value = p.defective_stock || 0;
             } else {

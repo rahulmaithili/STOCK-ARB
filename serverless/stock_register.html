@@ -331,7 +331,7 @@
             const metaContainer = document.getElementById('period-summary-meta-block');
             const tableContainer = document.getElementById('ledger-table-container');
 
-            const isRegulator = product.product_type === 'regulator' || product.product_type === 'ftl_regulator';
+            const isRegulator = product.product_type === 'regulator';
 
             // 1. Render Summary Meta
             if (isRegulator) {
