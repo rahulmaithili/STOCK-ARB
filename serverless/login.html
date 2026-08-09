@@ -20,12 +20,45 @@
         }
         .login-card {
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
             width: 100%;
             max-width: 420px;
+        }
+        .form-control::placeholder {
+            color: #94a3b8 !important;
+            opacity: 0.6;
+        }
+        .form-control {
+            background-color: rgba(30, 41, 59, 0.8) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            padding: 10px 14px !important;
+            border-radius: 8px !important;
+            font-size: 0.92rem;
+        }
+        .form-control:focus {
+            background-color: rgba(30, 41, 59, 1) !important;
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+            color: #ffffff !important;
+        }
+        .input-group-text {
+            background-color: rgba(30, 41, 59, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            color: #cbd5e1 !important;
+            border-right: none !important;
+            font-size: 0.95rem;
+        }
+        .form-label {
+            color: #cbd5e1 !important;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+        }
+        .text-light-muted {
+            color: #94a3b8 !important;
         }
     </style>
 </head>
@@ -44,18 +77,18 @@
 
         <form id="login-form">
             <div class="mb-3">
-                <label for="email" class="form-label text-muted fw-semibold" style="font-size: 0.8rem;">EMAIL ADDRESS</label>
+                <label for="email" class="form-label text-light-muted fw-semibold" style="font-size: 0.8rem;">EMAIL ADDRESS</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-dark border-0 text-muted"><i class="fa-regular fa-envelope"></i></span>
-                    <input type="email" class="form-control bg-dark border-0 text-white" id="email" required placeholder="e.g. admin@stockflow.com" style="border-radius: 0 8px 8px 0;">
+                    <span class="input-group-text"><i class="fa-regular fa-envelope"></i></span>
+                    <input type="email" class="form-control" id="email" required placeholder="e.g. admin@stockflow.com" style="border-radius: 0 8px 8px 0;">
                 </div>
             </div>
             
             <div class="mb-4">
-                <label for="password" class="form-label text-muted fw-semibold" style="font-size: 0.8rem;">PASSWORD</label>
+                <label for="password" class="form-label text-light-muted fw-semibold" style="font-size: 0.8rem;">PASSWORD</label>
                 <div class="input-group">
-                    <span class="input-group-text bg-dark border-0 text-muted"><i class="fa-solid fa-lock"></i></span>
-                    <input type="password" class="form-control bg-dark border-0 text-white" id="password" required placeholder="••••••••" style="border-radius: 0 8px 8px 0;">
+                    <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" class="form-control" id="password" required placeholder="••••••••" style="border-radius: 0 8px 8px 0;">
                 </div>
             </div>
             
@@ -68,7 +101,7 @@
         </form>
         
         <div class="text-center mt-4">
-            <small class="text-muted" style="font-size: 0.72rem;">Default Admin: admin@stockflow.com | admin123</small>
+            <small class="text-light-muted" style="font-size: 0.72rem;">Default Admin: admin@stockflow.com | admin123</small>
         </div>
     </div>
 </div>
