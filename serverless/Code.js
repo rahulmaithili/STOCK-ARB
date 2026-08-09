@@ -12,6 +12,8 @@ function doGet(e) {
     return handleGetData();
   } else if (action === 'search_consumer') {
     return handleSearchConsumer(e.parameter.consumer_number);
+  } else if (action === 'get_ledger') {
+    return handleGetLedger(e.parameter.product_id, e.parameter.date_from, e.parameter.date_to);
   }
   
   return jsonResponse({ success: false, error: 'Invalid GET action.' });
@@ -415,4 +417,191 @@ function setupDatabase() {
   }
   
   return "Database setup complete! All tabs, headers and default admin user created successfully.";
+}
+
+// Compile daily running ledger balances (Opening, In, NC Out, TVI Out, TVO In, Swap In, Plant Out, Closing)
+function handleGetLedger(productId, dateFromStr, dateToStr) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var prodSheet = ss.getSheetByName('products');
+  var prodData = prodSheet.getDataRange().getValues();
+  
+  var pId = parseInt(productId);
+  var selectedProduct = null;
+  
+  for (var i = 1; i < prodData.length; i++) {
+    if (parseInt(prodData[i][0]) === pId) {
+      selectedProduct = {
+        id: prodData[i][0],
+        name: prodData[i][1],
+        sku: prodData[i][2],
+        opening_stock: parseInt(prodData[i][7] || 0),
+        product_type: prodData[i][10],
+        defective_stock_init: 0
+      };
+      break;
+    }
+  }
+  
+  if (!selectedProduct) {
+    return jsonResponse({ success: false, error: 'Product not found.' });
+  }
+  
+  // Fetch all transactions chronologically
+  var custSheet = ss.getSheetByName('customer_replacements');
+  var custData = custSheet.getDataRange().getValues();
+  var txns = [];
+  
+  for (var i = 1; i < custData.length; i++) {
+    if (parseInt(custData[i][2]) === pId) {
+      txns.push({
+        date: new Date(custData[i][9]),
+        type: 'customer',
+        swap_type: custData[i][4],
+        qty: parseInt(custData[i][3] || 0),
+        customer_name: custData[i][1],
+        remarks: custData[i][10] || ''
+      });
+    }
+  }
+  
+  var plantSheet = ss.getSheetByName('plant_replacements');
+  var plantData = plantSheet.getDataRange().getValues();
+  for (var i = 1; i < plantData.length; i++) {
+    if (parseInt(plantData[i][2]) === pId) {
+      txns.push({
+        date: new Date(plantData[i][4]),
+        type: 'plant',
+        qty: parseInt(plantData[i][3] || 0),
+        supplier_name: plantData[i][1],
+        remarks: plantData[i][5] || ''
+      });
+    }
+  }
+  
+  // Sort transactions chronologically
+  txns.sort(function(a, b) {
+    return a.date - b.date;
+  });
+  
+  // Compile daily running ledger balances
+  var runningGood = selectedProduct.opening_stock;
+  var runningDef = 0;
+  
+  // Group transactions by date
+  var dailyTxns = {};
+  txns.forEach(function(t) {
+    var dateKey = Utilities.formatDate(t.date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    if (!dailyTxns[dateKey]) {
+      dailyTxns[dateKey] = [];
+    }
+    dailyTxns[dateKey].push(t);
+  });
+  
+  // Loop through each date in the period to build the daily ledger
+  var startDate = new Date(dateFromStr);
+  var endDate = new Date(dateToStr);
+  
+  var earliestDate = new Date(startDate);
+  if (txns.length > 0 && txns[0].date < startDate) {
+    earliestDate = new Date(txns[0].date);
+  }
+  
+  var initialGoodStock = selectedProduct.opening_stock;
+  var initialDefectiveStock = 0;
+  var ledgerRows = [];
+  
+  var tempDate = new Date(earliestDate);
+  while (tempDate <= endDate) {
+    var dateKey = Utilities.formatDate(tempDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    var dayTxns = dailyTxns[dateKey] || [];
+    
+    var openGood = runningGood;
+    var openDef = runningDef;
+    
+    var goodPurch = 0;
+    var goodPlantIn = 0;
+    var goodNC = 0;
+    var goodTVI = 0;
+    var goodSwapOut = 0;
+    
+    var defTVO = 0;
+    var defSwapIn = 0;
+    var defPlantOut = 0;
+    
+    var remarksList = [];
+    
+    dayTxns.forEach(function(t) {
+      if (t.type === 'customer') {
+        var st = t.swap_type;
+        if (st === 'new_connection') {
+          runningGood -= t.qty;
+          goodNC += t.qty;
+          remarksList.push("NC: " + t.customer_name + " (" + t.qty + " pcs)");
+        } else if (st === 'tv_in') {
+          runningGood -= t.qty;
+          goodTVI += t.qty;
+          remarksList.push("TV In: " + t.customer_name + " (" + t.qty + " pcs)");
+        } else if (st === 'tv_out') {
+          runningDef += t.qty;
+          defTVO += t.qty;
+          remarksList.push("TV Out: " + t.customer_name + " (" + t.qty + " pcs)");
+        } else if (st === 'replacement') {
+          runningGood -= t.qty;
+          runningDef += t.qty;
+          goodSwapOut += t.qty;
+          defSwapIn += t.qty;
+          remarksList.push("Swap: " + t.customer_name + " (" + t.qty + " pcs)");
+        }
+      } else if (t.type === 'plant') {
+        runningGood += t.qty;
+        runningDef -= t.qty;
+        goodPlantIn += t.qty;
+        defPlantOut += t.qty;
+        remarksList.push("Plant Return: " + t.supplier_name + " (" + t.qty + " pcs)");
+      }
+    });
+    
+    var closeGood = runningGood;
+    var closeDef = runningDef;
+    
+    if (tempDate < startDate) {
+      initialGoodStock = closeGood;
+      initialDefectiveStock = closeDef;
+    }
+    
+    if (tempDate >= startDate && tempDate <= endDate) {
+      if (dayTxns.length > 0) {
+        ledgerRows.push({
+          date: dateKey,
+          open_good: openGood,
+          good_purchase: 0,
+          good_plant_in: goodPlantIn,
+          good_adjustment: 0,
+          good_out_nc: goodNC,
+          good_out_tvi: goodTVI,
+          good_out_swap: goodSwapOut,
+          good_sale: 0,
+          close_good: closeGood,
+          
+          open_def: openDef,
+          def_in_tvo: defTVO,
+          def_in_swap: defSwapIn,
+          def_out: defPlantOut,
+          close_def: closeDef,
+          
+          remarks: remarksList.join(" | ")
+        });
+      }
+    }
+    
+    tempDate.setDate(tempDate.getDate() + 1);
+  }
+  
+  return jsonResponse({
+    success: true,
+    product: selectedProduct,
+    initial_good_stock: initialGoodStock,
+    initial_defective_stock: initialDefectiveStock,
+    ledger_data: ledgerRows
+  });
 }
