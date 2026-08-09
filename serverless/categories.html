@@ -231,7 +231,7 @@
             showLoader(false);
 
             if (response.success) {
-                globalCategories = response.categories;
+                globalCategories = response.categories || [];
                 renderCategoriesTable();
             } else {
                 notify('danger', 'Failed to retrieve categories.');
