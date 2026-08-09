@@ -3,13 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard — StockFlow Serverless Dashboard</title>
+    <title>Dashboard — StockFlow Serverless Control Hub</title>
     <!-- Bootstrap 5 CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/custom.css">
+    <style>
+        .stat-card-premium {
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            color: white;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%);
+            pointer-events: none;
+        }
+        .bg-card-sales { background: #059669; }
+        .bg-card-low-stock { background: #dc2626; }
+        .bg-card-products { background: #1e293b; }
+        .bg-card-asset { background: #d97706; }
+        
+        .stat-card-premium .value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        .stat-card-premium .label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.85;
+            margin-bottom: 4px;
+        }
+        .stat-card-premium .icon-wrapper {
+            font-size: 2.2rem;
+            opacity: 0.3;
+        }
+    </style>
 </head>
 <body>
 
@@ -21,18 +69,46 @@
             </a>
             <button class="btn btn-dark ms-auto d-md-none" id="sidebar-close-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="sidebar-category">Core Registers</div>
+        
+        <div class="sidebar-category">Catalog & Directory</div>
         <ul class="sidebar-menu">
-            <li class="sidebar-item active">
-                <a href="index.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <li class="sidebar-item">
+                <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="suppliers.html"><i class="fa-solid fa-truck-field"></i> Suppliers</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-category">Transactions</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="stock_in.html"><i class="fa-solid fa-circle-plus text-success"></i> Stock In</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="stock_out.html"><i class="fa-solid fa-circle-minus text-danger"></i> Stock Out</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="adjustments.html"><i class="fa-solid fa-sliders"></i> Adjustments</a>
             </li>
             <li class="sidebar-item">
                 <a href="replacements.html"><i class="fa-solid fa-arrows-spin"></i> Regulator Swaps</a>
             </li>
+        </ul>
+
+        <div class="sidebar-category">Analytics & Logs</div>
+        <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="stock_register.html"><i class="fa-solid fa-file-invoice"></i> Stock Register</a>
+                <a href="stock_register.html"><i class="fa-solid fa-file-invoice"></i> Reports</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
             </li>
         </ul>
+
         <div class="mt-auto p-3 border-top border-dark">
             <button onclick="logout();" class="btn btn-outline-danger w-100 btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
         </div>
@@ -65,82 +141,148 @@
         <!-- Main Body -->
         <main class="content-body">
             
-            <div class="row mb-4">
-                <div class="col-12">
-                    <h3 class="fw-bold text-dark" style="color: var(--navy-dark);"><i class="fa-solid fa-gauge me-2 text-success"></i>Serverless Dashboard</h3>
-                    <p class="text-muted" style="font-size: 0.95rem;">LPG Agency inventory balances syncing directly to Google Sheets database.</p>
+            <!-- Dashboard Title Header -->
+            <div class="row align-items-center mb-4">
+                <div class="col-md-6">
+                    <h3 class="fw-bold text-dark" style="color: var(--navy-dark);"><i class="fa-solid fa-house-laptop text-success me-2"></i>StockFlow Control Hub</h3>
+                    <p class="text-muted" style="font-size: 0.92rem;">Google Sheets Database Cloud Inventory Panel.</p>
+                </div>
+                <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end">
+                    <a href="stock_in.html" class="btn btn-success btn-sm px-3" style="border-radius: 8px;"><i class="fa-solid fa-plus me-1"></i> New Purchase</a>
+                    <a href="stock_out.html" class="btn btn-danger btn-sm px-3" style="border-radius: 8px;"><i class="fa-solid fa-minus me-1"></i> New Sale</a>
+                    <a href="stock_register.html" class="btn btn-secondary btn-sm px-3" style="border-radius: 8px;"><i class="fa-solid fa-file-invoice me-1"></i> Reports</a>
                 </div>
             </div>
 
-            <!-- Stats Row -->
-            <div class="row g-3 mb-4">
-                <div class="col-12 col-md-4">
-                    <div class="card border-0 shadow-sm text-white" style="border-radius: 12px; background: linear-gradient(135deg, #7c2d12, #c2410c);">
-                        <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                            <div>
-                                <h3 class="fw-bold mb-1" id="stat-defective-warehouse">0</h3>
-                                <small class="text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.05em; opacity: 0.9;">Defective in Hand (Warehouse)</small>
-                            </div>
-                            <div class="bg-white bg-opacity-25 p-3 rounded-circle" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fa-solid fa-triangle-exclamation fa-lg"></i>
+            <!-- KPI Cards Grid -->
+            <div class="row g-4 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card-premium bg-card-sales">
+                        <div>
+                            <div class="label">Today's Sales</div>
+                            <div class="value" id="kpi-today-sales">₹0.00</div>
+                        </div>
+                        <div class="icon-wrapper"><i class="fa-solid fa-cash-register"></i></div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card-premium bg-card-low-stock">
+                        <div>
+                            <div class="label">Low Stock Items</div>
+                            <div class="value" id="kpi-low-stock">0</div>
+                        </div>
+                        <div class="icon-wrapper"><i class="fa-solid fa-circle-exclamation"></i></div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card-premium bg-card-products">
+                        <div>
+                            <div class="label">Total Products</div>
+                            <div class="value" id="kpi-total-products">0</div>
+                        </div>
+                        <div class="icon-wrapper"><i class="fa-solid fa-cubes"></i></div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card-premium bg-card-asset">
+                        <div>
+                            <div class="label">Stock Asset Value</div>
+                            <div class="value" id="kpi-asset-value">₹0.00</div>
+                        </div>
+                        <div class="icon-wrapper"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart comparison section -->
+            <div class="row g-4 mb-4">
+                <!-- Bar Chart: Purchases and Sales -->
+                <div class="col-12 col-lg-8">
+                    <div class="card card-premium h-100">
+                        <div class="card-premium-header py-3">
+                            <h5 class="card-premium-title fw-bold" style="font-size: 0.95rem;"><i class="fa-solid fa-chart-line text-success me-2"></i>Sales & Purchases Comparison (Last 6 Months)</h5>
+                        </div>
+                        <div class="card-premium-body">
+                            <div style="height: 320px; position: relative;">
+                                <canvas id="salesPurchasesChart"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-12 col-md-4">
-                    <div class="card border-0 shadow-sm text-white" style="border-radius: 12px; background: linear-gradient(135deg, #1e3a8a, #3b82f6);">
-                        <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                            <div>
-                                <h3 class="fw-bold mb-1" id="stat-total-swaps">0</h3>
-                                <small class="text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.05em; opacity: 0.9;">Total Customer Swaps</small>
-                            </div>
-                            <div class="bg-white bg-opacity-25 p-3 rounded-circle" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fa-solid fa-people-carry-box fa-lg"></i>
-                            </div>
+                <!-- Doughnut Chart: Top Selling Products -->
+                <div class="col-12 col-lg-4">
+                    <div class="card card-premium h-100">
+                        <div class="card-premium-header py-3">
+                            <h5 class="card-premium-title fw-bold" style="font-size: 0.95rem;"><i class="fa-solid fa-chart-pie text-success me-2"></i>Top Selling Products</h5>
                         </div>
-                    </div>
-                </div>
-
-                <div class="col-12 col-md-4">
-                    <div class="card border-0 shadow-sm text-white" style="border-radius: 12px; background: linear-gradient(135deg, #064e3b, #10b981);">
-                        <div class="card-body p-4 d-flex justify-content-between align-items-center">
-                            <div>
-                                <h3 class="fw-bold mb-1" id="stat-plant-returns">0</h3>
-                                <small class="text-uppercase fw-semibold" style="font-size: 0.72rem; letter-spacing: 0.05em; opacity: 0.9;">Total Plant Returns</small>
-                            </div>
-                            <div class="bg-white bg-opacity-25 p-3 rounded-circle" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
-                                <i class="fa-solid fa-truck-ramp-box fa-lg"></i>
+                        <div class="card-premium-body d-flex align-items-center justify-content-center">
+                            <div style="height: 260px; width: 100%; position: relative;" class="d-flex justify-content-center">
+                                <canvas id="topSellingChart"></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Products Catalog Status -->
-            <div class="card card-premium mb-4">
-                <div class="card-premium-header">
-                    <h5 class="card-premium-title fw-bold"><i class="fa-solid fa-boxes-stacked text-success me-2"></i>Catalog Stock Status Summary</h5>
+            <!-- Warning & Logs section -->
+            <div class="row g-4">
+                <!-- Critical Low Stock Warnings -->
+                <div class="col-12 col-lg-6">
+                    <div class="card card-premium h-100">
+                        <div class="card-premium-header py-3">
+                            <h5 class="card-premium-title fw-bold text-danger" style="font-size: 0.95rem;"><i class="fa-solid fa-triangle-exclamation me-2"></i>Critical Low Stock Warnings</h5>
+                        </div>
+                        <div class="card-premium-body p-0">
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0" style="font-size: 0.85rem;">
+                                    <thead class="table-light text-uppercase text-muted" style="font-size: 0.7rem;">
+                                        <tr>
+                                            <th>Product Item</th>
+                                            <th>SKU</th>
+                                            <th>Min Reorder</th>
+                                            <th class="text-danger">Stock Qty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="low-stock-table-body">
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4 text-muted">Checking stock levels...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-premium-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
-                            <thead class="table-light text-uppercase" style="font-size: 0.72rem; font-weight: 700;">
-                                <tr>
-                                    <th>Product Item</th>
-                                    <th>SKU</th>
-                                    <th>Type</th>
-                                    <th style="text-align: center;">Fresh Good Stock</th>
-                                    <th style="text-align: center; color: var(--danger-dark);">Defective Stock</th>
-                                    <th style="text-align: center;">Total Stock</th>
-                                </tr>
-                            </thead>
-                            <tbody id="products-table-body">
-                                <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">Loading catalog data from Google Sheets...</td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+                <!-- Recent Sales Invoice Logs -->
+                <div class="col-12 col-lg-6">
+                    <div class="card card-premium h-100">
+                        <div class="card-premium-header py-3">
+                            <h5 class="card-premium-title fw-bold text-success" style="font-size: 0.95rem;"><i class="fa-solid fa-receipt me-2"></i>Recent Sales Invoice Logs</h5>
+                        </div>
+                        <div class="card-premium-body p-0">
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0" style="font-size: 0.85rem;">
+                                    <thead class="table-light text-uppercase text-muted" style="font-size: 0.7rem;">
+                                        <tr>
+                                            <th>Invoice Date</th>
+                                            <th>Invoice No</th>
+                                            <th>Customer Partner</th>
+                                            <th>Amount (₹)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sales-logs-table-body">
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4 text-muted">Loading invoice list...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -151,8 +293,10 @@
     <!-- Script Imports -->
     <script src="js/api.js"></script>
     <script>
-        // Check auth status on load
         checkAuth();
+
+        let salesPurchasesChartObj = null;
+        let topSellingChartObj = null;
 
         document.addEventListener('DOMContentLoaded', function() {
             // Set current date
@@ -176,7 +320,7 @@
             toggleBtn.addEventListener('click', () => sidebar.classList.add('toggled'));
             closeBtn.addEventListener('click', () => sidebar.classList.remove('toggled'));
 
-            // Load data from API
+            // Load all statistics & populate cards/charts
             loadDashboardData();
         });
 
@@ -186,48 +330,149 @@
             showLoader(false);
 
             if (response.success) {
-                // Populate Stats
-                document.getElementById('stat-defective-warehouse').textContent = response.stats.defective_in_hand.toLocaleString('en-IN');
-                document.getElementById('stat-total-swaps').textContent = response.stats.total_customer_swaps.toLocaleString('en-IN');
-                document.getElementById('stat-plant-returns').textContent = response.stats.total_plant_returns.toLocaleString('en-IN');
+                // 1. Populate KPI values
+                document.getElementById('kpi-today-sales').textContent = '₹' + response.stats.today_sales.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('kpi-low-stock').textContent = response.stats.low_stock_count;
+                document.getElementById('kpi-total-products').textContent = response.stats.total_products;
+                document.getElementById('kpi-asset-value').textContent = '₹' + response.stats.stock_asset_value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-                // Populate Products Table
-                const tbody = document.getElementById('products-table-body');
-                tbody.innerHTML = '';
-
-                if (response.products.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No products registered in Catalog.</td></tr>`;
-                    return;
+                // 2. Populate Critical Low Stock Warnings table
+                const lowStockBody = document.getElementById('low-stock-table-body');
+                lowStockBody.innerHTML = '';
+                const lowStockList = response.products.filter(p => parseInt(p.current_stock) <= parseInt(p.reorder_level));
+                
+                if (lowStockList.length === 0) {
+                    lowStockBody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-success"><i class="fa-solid fa-circle-check me-1"></i> All product stock levels are healthy!</td></tr>`;
+                } else {
+                    lowStockList.slice(0, 5).forEach(p => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="fw-semibold text-dark">${escapeHtml(p.name)}</td>
+                            <td><span class="badge bg-light text-secondary border">${escapeHtml(p.sku)}</span></td>
+                            <td>${p.reorder_level} ${p.unit}</td>
+                            <td class="text-danger fw-bold">${p.current_stock} ${p.unit}</td>
+                        `;
+                        lowStockBody.appendChild(tr);
+                    });
                 }
 
-                response.products.forEach(p => {
-                    const row = document.createElement('tr');
-                    
-                    const totalStock = parseInt(p.current_stock || 0) + parseInt(p.defective_stock || 0);
-                    
-                    // Styled Type Badges
-                    let typeBadge = '';
-                    if (p.product_type === 'regulator') {
-                        typeBadge = '<span class="badge bg-warning-light text-warning px-2.5 py-1">Regulator</span>';
-                    } else if (p.product_type === 'ftl_regulator') {
-                        typeBadge = '<span class="badge bg-purple-light text-purple px-2.5 py-1">FTL Regulator</span>';
-                    } else {
-                        typeBadge = '<span class="badge bg-light text-secondary px-2.5 py-1">Standard</span>';
-                    }
+                // 3. Populate Recent Sales Invoice Logs table
+                const salesBody = document.getElementById('sales-logs-table-body');
+                salesBody.innerHTML = '';
+                
+                if (response.sales.length === 0) {
+                    salesBody.innerHTML = `<tr><td colspan="4" class="text-center py-3 text-muted">No sales invoices logged yet.</td></tr>`;
+                } else {
+                    response.sales.slice(0, 5).forEach(s => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${formatDateStr(s.sale_date)}</td>
+                            <td class="fw-medium text-success">INV-${s.id}</td>
+                            <td>${escapeHtml(s.customer_name)}</td>
+                            <td class="fw-bold">₹${s.total_amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        `;
+                        salesBody.appendChild(tr);
+                    });
+                }
 
-                    row.innerHTML = `
-                        <td class="fw-semibold text-dark">${escapeHtml(p.name)}</td>
-                        <td><code>${escapeHtml(p.sku)}</code></td>
-                        <td>${typeBadge}</td>
-                        <td style="text-align: center;" class="text-success fw-bold">${parseInt(p.current_stock).toLocaleString('en-IN')} <small class="text-muted fw-normal">${escapeHtml(p.unit)}</small></td>
-                        <td style="text-align: center;" class="text-danger fw-bold">${parseInt(p.defective_stock || 0).toLocaleString('en-IN')} <small class="text-muted fw-normal">${escapeHtml(p.unit)}</small></td>
-                        <td style="text-align: center;" class="fw-bold">${totalStock.toLocaleString('en-IN')} <small class="text-muted fw-normal">${escapeHtml(p.unit)}</small></td>
-                    `;
-                    tbody.appendChild(row);
-                });
+                // 4. Render Sales vs Purchases Comparison Chart
+                renderSalesPurchasesChart(response.charts);
+
+                // 5. Render Top Selling doughnut chart
+                renderTopSellingChart(response.charts);
+
             } else {
-                notify('danger', response.error || "Failed to fetch dashboard records.");
+                notify('danger', response.error || 'Failed to fetch dashboard metrics.');
             }
+        }
+
+        function renderSalesPurchasesChart(chartData) {
+            const ctx = document.getElementById('salesPurchasesChart').getContext('2d');
+            if (salesPurchasesChartObj) salesPurchasesChartObj.destroy();
+
+            salesPurchasesChartObj = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.months,
+                    datasets: [
+                        {
+                            label: 'Sales (₹)',
+                            data: chartData.sales,
+                            backgroundColor: '#10b981',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Purchases (₹)',
+                            data: chartData.purchases,
+                            backgroundColor: '#6366f1',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 } }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { boxWidth: 15, font: { size: 11, weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTopSellingChart(chartData) {
+            const ctx = document.getElementById('topSellingChart').getContext('2d');
+            if (topSellingChartObj) topSellingChartObj.destroy();
+
+            if (chartData.topData.length === 0) {
+                // If empty, show dummy pipe/regulator ratio
+                chartData.topLabels = ['Empty Register'];
+                chartData.topData = [1];
+            }
+
+            topSellingChartObj = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartData.topLabels.slice(0, 5),
+                    datasets: [{
+                        data: chartData.topData.slice(0, 5),
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 10, weight: '500' } }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function formatDateStr(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
         }
 
         function escapeHtml(str) {

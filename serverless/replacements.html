@@ -21,18 +21,45 @@
             </a>
             <button class="btn btn-dark ms-auto d-md-none" id="sidebar-close-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="sidebar-category">Core Registers</div>
+        <div class="sidebar-category">Catalog & Directory</div>
         <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="index.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="suppliers.html"><i class="fa-solid fa-truck-field"></i> Suppliers</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-category">Transactions</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="stock_in.html"><i class="fa-solid fa-circle-plus text-success"></i> Stock In</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="stock_out.html"><i class="fa-solid fa-circle-minus text-danger"></i> Stock Out</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="adjustments.html"><i class="fa-solid fa-sliders"></i> Adjustments</a>
             </li>
             <li class="sidebar-item active">
                 <a href="replacements.html"><i class="fa-solid fa-arrows-spin"></i> Regulator Swaps</a>
             </li>
+        </ul>
+
+        <div class="sidebar-category">Analytics & Logs</div>
+        <ul class="sidebar-menu">
             <li class="sidebar-item">
-                <a href="stock_register.html"><i class="fa-solid fa-file-invoice"></i> Stock Register</a>
+                <a href="stock_register.html"><i class="fa-solid fa-file-invoice"></i> Reports</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
             </li>
         </ul>
+
         <div class="mt-auto p-3 border-top border-dark">
             <button onclick="logout();" class="btn btn-outline-danger w-100 btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
         </div>
