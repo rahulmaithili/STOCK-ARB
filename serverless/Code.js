@@ -366,3 +366,53 @@ function getProductSkuById(products, id) {
   }
   return '';
 }
+
+// Automatically setup all Sheet Tabs, Column Headers, and Default admin credentials
+function setupDatabase() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // 1. Setup products sheet
+  var prodSheet = ss.getSheetByName('products') || ss.insertSheet('products');
+  prodSheet.clear();
+  prodSheet.appendRow([
+    'id', 'name', 'sku', 'category', 'unit', 'purchase_price', 'selling_price', 'opening_stock', 'current_stock', 'reorder_level', 'product_type', 'defective_stock'
+  ]);
+  // Add sample product
+  prodSheet.appendRow([
+    1, 'Regulator Emr', 'EMR', 'Regulator', 'PCS', 150, 250, 400, 400, 20, 'regulator', 36
+  ]);
+  
+  // 2. Setup customer_replacements
+  var custSheet = ss.getSheetByName('customer_replacements') || ss.insertSheet('customer_replacements');
+  custSheet.clear();
+  custSheet.appendRow([
+    'id', 'customer_name', 'product_id', 'quantity', 'swap_type', 'consumer_number', 'mobile_number', 'old_regulator_no', 'new_regulator_no', 'replacement_date', 'notes', 'created_by', 'created_at'
+  ]);
+  
+  // 3. Setup plant_replacements
+  var plantSheet = ss.getSheetByName('plant_replacements') || ss.insertSheet('plant_replacements');
+  plantSheet.clear();
+  plantSheet.appendRow([
+    'id', 'supplier_name', 'product_id', 'quantity', 'return_date', 'notes', 'created_by', 'created_at'
+  ]);
+  
+  // 4. Setup users
+  var userSheet = ss.getSheetByName('users') || ss.insertSheet('users');
+  userSheet.clear();
+  userSheet.appendRow([
+    'id', 'name', 'email', 'password', 'role'
+  ]);
+  userSheet.appendRow([
+    1, 'System Administrator', 'admin@stockflow.com', 'admin123', 'admin'
+  ]);
+  
+  // Remove default "Sheet1" if it exists to keep it clean
+  var sheet1 = ss.getSheetByName('Sheet1');
+  if (sheet1) {
+    try {
+      ss.deleteSheet(sheet1);
+    } catch(err) {}
+  }
+  
+  return "Database setup complete! All tabs, headers and default admin user created successfully.";
+}
