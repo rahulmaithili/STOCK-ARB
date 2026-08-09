@@ -1,0 +1,539 @@
+/* 
+   Premium SaaS Dashboard Custom Style
+   Complements Bootstrap 5 with custom variables, layout, typography, and card treatments.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --font-primary: 'Outfit', sans-serif;
+    
+    /* Premium Color Palette */
+    --navy-dark: #090d16;
+    --navy-sidebar: #0f172a;
+    --navy-active: #1e293b;
+    
+    --content-bg: #f8fafc;
+    --card-bg: #ffffff;
+    
+    /* Accent color: Emerald */
+    --accent: #10b981;
+    --accent-hover: #059669;
+    --accent-light: #ecfdf5;
+    
+    --primary: #4f46e5;
+    --primary-light: #e0e7ff;
+    
+    --text-dark: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #f8fafc;
+    
+    --border-color: #f1f5f9;
+    
+    --shadow-soft: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 12px 24px -4px rgba(0, 0, 0, 0.06), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
+}
+
+body {
+    font-family: var(--font-primary);
+    background-color: var(--content-bg);
+    color: var(--text-dark);
+    min-height: 100vh;
+    display: flex;
+    overflow-x: hidden;
+}
+
+/* Sidebar Styling */
+.sidebar-wrapper {
+    width: 260px;
+    background: linear-gradient(180deg, #0f172a 0%, #090d16 100%);
+    color: var(--text-light);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+}
+
+.sidebar-header {
+    height: 70px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.sidebar-brand {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #fff !important;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: -0.02em;
+}
+
+.sidebar-brand span {
+    color: var(--accent);
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+}
+
+.sidebar-item a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #94a3b8;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-item a:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+    color: #fff;
+    transform: translateX(4px);
+}
+
+.sidebar-item.active a {
+    background-color: var(--navy-active);
+    color: #fff;
+    border-left: 4px solid var(--accent);
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-category {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #475569;
+    padding: 16px 16px 6px;
+    font-weight: 800;
+}
+
+/* Content Area Layout */
+.main-content-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.top-navbar {
+    height: 70px;
+    background-color: #fff;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 0 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.navbar-user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.avatar-initials {
+    width: 38px;
+    height: 38px;
+    background-color: var(--accent-light);
+    color: var(--accent-hover);
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.content-body {
+    padding: 32px;
+    flex-grow: 1;
+}
+
+/* Premium Layout Cards with hover effects */
+.card-premium {
+    background-color: var(--card-bg);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 24px;
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* NOTE: No transform here — transform creates a new stacking context
+       that clips position:absolute dropdowns inside the card */
+}
+
+.card-premium:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-premium-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-premium-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.card-premium-body {
+    padding: 24px;
+}
+
+/* Fix: Dropdowns inside .table-responsive get clipped by overflow:auto.
+   Allow overflow-y to be visible so dropdown menus can escape the table bounds. */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Ensure Bootstrap dropdown menus always render on top of everything */
+.dropdown-menu {
+    z-index: 1055 !important;
+}
+
+/* Fix dropdown clipping in DataTables / card tables */
+.dataTables_wrapper .table-responsive,
+.card-premium .table-responsive {
+    overflow: visible;
+}
+
+/* But restore horizontal scroll on small screens if table is wide */
+@media (max-width: 768px) {
+    .card-premium .table-responsive {
+        overflow-x: auto;
+        overflow-y: visible;
+    }
+}
+
+/* Custom Metric Cards */
+.metric-card {
+    border-left: 4px solid var(--primary);
+}
+
+.metric-card.accent {
+    border-left-color: var(--accent);
+}
+
+.metric-card.danger {
+    border-left-color: #ef4444;
+}
+
+.metric-card.warning {
+    border-left-color: #f59e0b;
+}
+
+.metric-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 4px 0 0;
+}
+
+/* Form Styles */
+.form-control-premium {
+    font-family: inherit;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.form-control-premium:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+    outline: none;
+}
+
+/* Button Custom Styles with dynamic gradients */
+.btn-accent {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 24px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-accent:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+}
+
+/* Auth Pages Style */
+.auth-page-bg {
+    background: radial-gradient(circle at 10% 20%, rgba(216, 241, 230, 0.46) 0.1%, rgba(233, 226, 226, 0.28) 90.1%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-primary);
+}
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 440px;
+}
+
+/* DataTables Overwrite for Modern Look */
+table.dataTable {
+    border-collapse: collapse !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--accent) !important;
+    color: #fff !important;
+    border: 1px solid var(--accent) !important;
+    border-radius: 6px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    outline: none;
+}
+
+.table th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 2px solid #e2e8f0 !important;
+    background-color: #f8fafc !important;
+}
+
+/* Responsive adjustments */
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 990;
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 991.98px) {
+    .sidebar-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1000;
+        margin-left: -260px;
+        box-shadow: none;
+    }
+    .sidebar-wrapper.toggled {
+        margin-left: 0;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.25);
+    }
+    .top-navbar {
+        padding: 0 16px;
+    }
+    .content-body {
+        padding: 16px;
+    }
+    .card-premium-body {
+        padding: 16px;
+    }
+    .card-premium-header {
+        padding: 16px;
+    }
+}
+
+@media (min-width: 992px) {
+    /* Desktop Collapsed Sidebar mode */
+    .sidebar-wrapper.toggled {
+        width: 70px;
+    }
+    
+    /* Hide Text labels when collapsed */
+    .sidebar-wrapper.toggled .brand-text,
+    .sidebar-wrapper.toggled .menu-text,
+    .sidebar-wrapper.toggled .category-text {
+        display: none !important;
+    }
+    
+    /* Center and enlarge icons when collapsed */
+    .sidebar-wrapper.toggled .sidebar-item a {
+        justify-content: center;
+        padding: 12px 0;
+    }
+    
+    .sidebar-wrapper.toggled .sidebar-item a i {
+        margin: 0 !important;
+        font-size: 1.15rem;
+    }
+    
+    /* Replace category title text with a thin separator line */
+    .sidebar-wrapper.toggled .sidebar-category {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        margin: 8px 12px;
+        padding: 0;
+        height: 1px;
+    }
+    
+    .sidebar-wrapper.toggled .sidebar-brand {
+        justify-content: center;
+    }
+    
+    .sidebar-wrapper.toggled .sidebar-brand i {
+        margin: 0 !important;
+        font-size: 1.35rem;
+    }
+}
+
+/* ==========================================================================
+   PRINT MEDIA RULES - Professional Reporting Layout
+   ========================================================================== */
+@media print {
+    /* 1. Hide non-printable workspace frames */
+    .sidebar-wrapper,
+    .top-navbar,
+    .no-print,
+    .btn,
+    .btn-sm,
+    .btn-accent,
+    .dataTables_length,
+    .dataTables_filter,
+    .dataTables_info,
+    .dataTables_paginate,
+    .card-premium-header .btn,
+    form:not(.printable-form),
+    button,
+    hr {
+        display: none !important;
+    }
+
+    /* 2. Reset layouts and body frame container */
+    body, html, .main-content-wrapper, .content-body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        display: block !important;
+        overflow: visible !important;
+    }
+
+    /* 3. Render printable header block */
+    .print-header {
+        display: block !important;
+    }
+
+    /* 4. Formatting adjustments for premium tables and cards */
+    .card-premium {
+        border: none !important;
+        box-shadow: none !important;
+        margin-bottom: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    .card-premium-header {
+        padding: 10px 0 !important;
+        margin-bottom: 15px !important;
+        border-bottom: 1.5px solid #000000 !important;
+    }
+
+    .card-premium-title {
+        color: #000000 !important;
+        font-size: 1.15rem !important;
+        font-weight: 700 !important;
+    }
+
+    .card-premium-body {
+        padding: 0 !important;
+    }
+
+    /* 5. Clean, dark readable tables without scrollbars */
+    .table-responsive {
+        overflow: visible !important;
+        width: 100% !important;
+    }
+
+    table, .table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 20px !important;
+    }
+
+    table th, .table th {
+        background-color: #f1f5f9 !important;
+        color: #000000 !important;
+        border: 1px solid #cbd5e1 !important;
+        font-size: 0.82rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        padding: 8px !important;
+    }
+
+    table td, .table td {
+        border: 1px solid #e2e8f0 !important;
+        padding: 8px !important;
+        font-size: 0.8rem !important;
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+
+    /* Ensure text colors are fully dark and readable */
+    .text-muted, .text-secondary {
+        color: #475569 !important;
+    }
+
+    code {
+        background: none !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #000000 !important;
+        padding: 2px 5px !important;
+    }
+
+    /* Page breaks */
+    tr {
+        page-break-inside: avoid !important;
+    }
+}
