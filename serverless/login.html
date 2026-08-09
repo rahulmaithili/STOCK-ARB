@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — StockFlow Serverless Dashboard</title>
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/custom.css">
+    <style>
+        body {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f172a 0%, #090d16 100%);
+        }
+        .login-card {
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 420px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card login-card text-white p-4">
+    <div class="card-body">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-success mb-1"><i class="fa-solid fa-cubes me-2"></i>StockFlow</h3>
+            <small class="text-muted">LPG Inventory Serverless Register</small>
+        </div>
+        
+        <div id="login-error" class="alert alert-danger d-none" style="font-size: 0.85rem;">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> <span></span>
+        </div>
+
+        <form id="login-form">
+            <div class="mb-3">
+                <label for="email" class="form-label text-muted fw-semibold" style="font-size: 0.8rem;">EMAIL ADDRESS</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-0 text-muted"><i class="fa-regular fa-envelope"></i></span>
+                    <input type="email" class="form-control bg-dark border-0 text-white" id="email" required placeholder="e.g. admin@stockflow.com" style="border-radius: 0 8px 8px 0;">
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <label for="password" class="form-label text-muted fw-semibold" style="font-size: 0.8rem;">PASSWORD</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-0 text-muted"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" class="form-control bg-dark border-0 text-white" id="password" required placeholder="••••••••" style="border-radius: 0 8px 8px 0;">
+                </div>
+            </div>
+            
+            <div class="d-grid">
+                <button type="submit" id="btn-submit" class="btn btn-success py-2.5 fw-bold" style="border-radius: 10px;">
+                    <span id="btn-spinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                    Login to Register
+                </button>
+            </div>
+        </form>
+        
+        <div class="text-center mt-4">
+            <small class="text-muted" style="font-size: 0.72rem;">Default Admin: admin@stockflow.com | admin123</small>
+        </div>
+    </div>
+</div>
+
+<!-- API Script imports -->
+<script src="js/api.js"></script>
+<script>
+// Check if already logged in
+if (localStorage.getItem('stockflow_token')) {
+    window.location.href = 'index.html';
+}
+
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const errBlock = document.getElementById('login-error');
+    const spinner = document.getElementById('btn-spinner');
+    const submitBtn = document.getElementById('btn-submit');
+    
+    // Hide previous error
+    errBlock.classList.add('d-none');
+    
+    if (API_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+        errBlock.classList.remove('d-none');
+        errBlock.querySelector('span').textContent = "Please configure your Google Apps Script URL in serverless/js/api.js first.";
+        return;
+    }
+    
+    // Show spinner
+    spinner.classList.remove('d-none');
+    submitBtn.disabled = true;
+    
+    const response = await apiPost('login', { email, password });
+    
+    // Hide spinner
+    spinner.classList.add('d-none');
+    submitBtn.disabled = false;
+    
+    if (response.success) {
+        localStorage.setItem('stockflow_token', response.token);
+        localStorage.setItem('stockflow_user', JSON.stringify(response.user));
+        window.location.href = 'index.html';
+    } else {
+        errBlock.classList.remove('d-none');
+        errBlock.querySelector('span').textContent = response.error || "Authentication failed.";
+    }
+});
+</script>
+</body>
+</html>
