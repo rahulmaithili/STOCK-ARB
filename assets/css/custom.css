@@ -537,3 +537,51 @@ table.dataTable {
         page-break-inside: avoid !important;
     }
 }
+
+/* -------------------------------------------------------------
+   Premium Mobile Layout Support & Responsiveness Overrides
+   ------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+    .content-body {
+        padding: 16px !important;
+    }
+    
+    .top-navbar {
+        padding: 0 16px !important;
+    }
+    
+    /* Make tables swipe scrollable on mobile without cutting off */
+    .table-responsive {
+        display: block !important;
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 8px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    /* Horizontal scrollbar styling for tables */
+    .table-responsive::-webkit-scrollbar {
+        height: 6px !important;
+    }
+    
+    .table-responsive::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1 !important;
+        border-radius: 3px !important;
+    }
+    
+    /* Prevent cells from wrapping too awkwardly, ensuring they remain readable */
+    .table-responsive table th,
+    .table-responsive table td {
+        white-space: nowrap !important;
+        min-width: 100px !important;
+    }
+    
+    /* Except for Remarks column to wrap if needed */
+    .table-responsive table td.remarks,
+    .table-responsive table td:last-child {
+        white-space: normal !important;
+        min-width: 180px !important;
+    }
+}
