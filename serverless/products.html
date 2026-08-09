@@ -98,7 +98,10 @@
                     <h3 class="fw-bold text-dark" style="color: var(--navy-dark);"><i class="fa-solid fa-box text-success me-2"></i>Products Catalog Manager</h3>
                     <p class="text-muted" style="font-size: 0.92rem;">Manage product names, pricing details, and reorder alerts.</p>
                 </div>
-                <div class="col-md-6 text-md-end">
+                <div class="col-md-6 text-md-end d-flex gap-2 justify-content-md-end justify-content-start">
+                    <a href="categories.html" class="btn btn-outline-secondary btn-sm px-3 d-inline-flex align-items-center gap-1" style="border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 500;">
+                        <i class="fa-solid fa-tags text-success"></i> Categories
+                    </a>
                     <button class="btn btn-success px-4 btn-sm" style="border-radius: 8px;" id="btn-add-product">
                         <i class="fa-solid fa-plus me-1"></i> Add New Product
                     </button>
@@ -162,7 +165,9 @@
                             </div>
                             <div class="col-6">
                                 <label for="category" class="form-label text-muted fw-semibold mb-1" style="font-size: 0.75rem;">CATEGORY</label>
-                                <input type="text" class="form-control py-2" id="category" required placeholder="e.g. Stove">
+                                <select class="form-select py-2" id="category" required>
+                                    <option value="">-- Select Category --</option>
+                                </select>
                             </div>
                         </div>
 
@@ -324,6 +329,18 @@
             showLoader(false);
 
             if (response.success) {
+                // Populate categories select options in modal
+                const catDropdown = document.getElementById('category');
+                catDropdown.innerHTML = '<option value="">-- Select Category --</option>';
+                if (response.categories && response.categories.length > 0) {
+                    response.categories.forEach(cat => {
+                        const opt = document.createElement('option');
+                        opt.value = cat.name;
+                        opt.textContent = cat.name;
+                        catDropdown.appendChild(opt);
+                    });
+                }
+
                 globalProducts = response.products;
                 const tbody = document.getElementById('products-table-body');
                 tbody.innerHTML = '';
@@ -384,7 +401,14 @@
             document.getElementById('product_id').value = p.id;
             document.getElementById('name').value = p.name;
             document.getElementById('sku').value = p.sku;
-            document.getElementById('category').value = p.category;
+            const categorySelect = document.getElementById('category');
+            if (p.category && !Array.from(categorySelect.options).some(opt => opt.value === p.category)) {
+                const opt = document.createElement('option');
+                opt.value = p.category;
+                opt.textContent = p.category;
+                categorySelect.appendChild(opt);
+            }
+            categorySelect.value = p.category || '';
             document.getElementById('purchase_price').value = p.purchase_price;
             document.getElementById('selling_price').value = p.selling_price;
             document.getElementById('opening_stock').value = p.opening_stock;

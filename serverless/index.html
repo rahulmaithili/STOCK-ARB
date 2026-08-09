@@ -293,6 +293,34 @@
                 </div>
             </div>
 
+            <!-- Extra Stats Summary Row -->
+            <div class="row g-3 mb-5 text-center mt-4">
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-white border rounded-3 shadow-sm">
+                        <span class="text-muted d-block uppercase fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Today's Invoices</span>
+                        <strong class="fs-4 text-dark" id="extra-today-invoices">0</strong>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-white border rounded-3 shadow-sm">
+                        <span class="text-muted d-block uppercase fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Today's Income</span>
+                        <strong class="fs-4 text-success" id="extra-today-income">₹0.00</strong>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-white border rounded-3 shadow-sm">
+                        <span class="text-muted d-block uppercase fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Catalog Count</span>
+                        <strong class="fs-4 text-primary" id="extra-catalog-count">0 Items</strong>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-3 bg-white border rounded-3 shadow-sm">
+                        <span class="text-muted d-block uppercase fw-semibold mb-1" style="font-size: 0.72rem; letter-spacing: 0.05em;">Warehouse Assets</span>
+                        <strong class="fs-4 text-warning" id="extra-warehouse-assets">₹0.00</strong>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -341,6 +369,17 @@
                 document.getElementById('kpi-low-stock').textContent = response.stats.low_stock_count;
                 document.getElementById('kpi-total-products').textContent = response.stats.total_products;
                 document.getElementById('kpi-asset-value').textContent = '₹' + response.stats.stock_asset_value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                // Populate extra stats summary cards at bottom
+                const todayStr = new Date().toISOString().split('T')[0];
+                const todaySalesTxns = (response.sales || []).filter(s => {
+                    const saleDate = new Date(s.sale_date).toISOString().split('T')[0];
+                    return saleDate === todayStr;
+                });
+                document.getElementById('extra-today-invoices').textContent = todaySalesTxns.length;
+                document.getElementById('extra-today-income').textContent = '₹' + response.stats.today_sales.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('extra-catalog-count').textContent = response.stats.total_products + ' Items';
+                document.getElementById('extra-warehouse-assets').textContent = '₹' + response.stats.stock_asset_value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
                 // 2. Populate Critical Low Stock Warnings table
                 const lowStockBody = document.getElementById('low-stock-table-body');
