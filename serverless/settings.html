@@ -109,6 +109,14 @@
                         <div class="card-premium-body">
                             <form id="settings-form">
                                 <div class="mb-3">
+                                    <label class="form-label text-muted fw-semibold mb-1" style="font-size: 0.75rem;">COMPANY LOGO</label>
+                                    <input type="file" class="form-control" id="company_logo_file" accept="image/*">
+                                    <input type="hidden" id="company_logo_base64">
+                                    <div class="mt-2 text-center d-none" id="company-logo-preview-block">
+                                        <img src="" id="company-logo-preview" class="img-thumbnail rounded bg-white" style="max-height: 80px; object-fit: contain;">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
                                     <label for="company_name" class="form-label text-muted fw-semibold mb-1" style="font-size: 0.75rem;">AGENCY / COMPANY NAME</label>
                                     <input type="text" class="form-control py-2.5" id="company_name" required placeholder="e.g. Shiv Shakti HP Gas Agency">
                                 </div>
@@ -196,6 +204,21 @@
             // Load settings
             loadSettings();
 
+            // Logo file compression listener
+            document.getElementById('company_logo_file').addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    try {
+                        const compressed = await compressImage(file, 200, 0.7);
+                        document.getElementById('company_logo_base64').value = compressed;
+                        document.getElementById('company-logo-preview').src = compressed;
+                        document.getElementById('company-logo-preview-block').classList.remove('d-none');
+                    } catch(err) {
+                        notify('danger', 'Failed to process logo file.');
+                    }
+                }
+            });
+
             // Form Submit handler
             document.getElementById('settings-form').addEventListener('submit', handleSaveSettingsSubmit);
         });
@@ -212,6 +235,15 @@
                 document.getElementById('email').value = s.email || '';
                 document.getElementById('gstin').value = s.gstin || '';
                 document.getElementById('address').value = s.address || '';
+                
+                if (s.logo) {
+                    document.getElementById('company_logo_base64').value = s.logo;
+                    document.getElementById('company-logo-preview').src = s.logo;
+                    document.getElementById('company-logo-preview-block').classList.remove('d-none');
+                } else {
+                    document.getElementById('company_logo_base64').value = '';
+                    document.getElementById('company-logo-preview-block').classList.add('d-none');
+                }
             } else {
                 notify('danger', 'Failed to load business profile settings.');
             }
@@ -225,7 +257,8 @@
                 phone: document.getElementById('phone').value,
                 email: document.getElementById('email').value,
                 gstin: document.getElementById('gstin').value,
-                address: document.getElementById('address').value
+                address: document.getElementById('address').value,
+                logo: document.getElementById('company_logo_base64').value
             };
 
             showLoader(true);

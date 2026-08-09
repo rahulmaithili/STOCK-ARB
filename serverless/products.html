@@ -222,6 +222,16 @@
                             </div>
                         </div>
 
+                        <!-- Product Photo Upload field -->
+                        <div class="mb-3">
+                            <label for="product_photo" class="form-label text-muted fw-semibold mb-1" style="font-size: 0.75rem;">PRODUCT PHOTO</label>
+                            <input type="file" class="form-control" id="product_photo" accept="image/*">
+                            <input type="hidden" id="product_photo_base64">
+                            <div class="mt-2 text-center d-none" id="product-photo-preview-block">
+                                <img src="" id="product-photo-preview" class="img-thumbnail rounded" style="max-height: 80px;">
+                            </div>
+                        </div>
+
                     </div>
                     <div class="modal-footer border-0 p-3 bg-light" style="border-radius: 0 0 16px 16px;">
                         <button type="button" class="btn btn-secondary py-2" data-bs-dismiss="modal">Close</button>
@@ -289,6 +299,21 @@
                 }
             });
 
+            // File input listener for photo compression
+            document.getElementById('product_photo').addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    try {
+                        const compressed = await compressImage(file, 200, 0.7);
+                        document.getElementById('product_photo_base64').value = compressed;
+                        document.getElementById('product-photo-preview').src = compressed;
+                        document.getElementById('product-photo-preview-block').classList.remove('d-none');
+                    } catch(err) {
+                        notify('danger', 'Failed to process image file.');
+                    }
+                }
+            });
+
             // Form Submit handler
             document.getElementById('product-form').addEventListener('submit', handleSaveProductSubmit);
         });
@@ -319,11 +344,20 @@
                         ? `<div class="fw-semibold text-success">${p.current_stock} OK</div><small class="text-danger">${p.defective_stock || 0} Defect</small>`
                         : `<span class="badge ${stockLabelClass} bg-opacity-10 py-1.5 px-3" style="font-size: 0.8rem;">${p.current_stock} ${escapeHtml(p.unit)}</span>`;
 
+                    const photoHtml = p.image 
+                        ? `<img src="${p.image}" class="rounded border me-2" style="width: 38px; height: 38px; object-fit: cover;">`
+                        : `<div class="bg-light text-muted rounded border me-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;"><i class="fa-solid fa-box" style="font-size: 0.9rem;"></i></div>`;
+
                     tr.innerHTML = `
                         <td class="text-muted fw-medium">${p.id}</td>
                         <td>
-                            <div class="fw-bold text-dark" style="font-size: 0.92rem;">${escapeHtml(p.name)}</div>
-                            <small class="text-muted font-monospace" style="font-size: 0.72rem;">SKU: ${escapeHtml(p.sku)}</small>
+                            <div class="d-flex align-items-center">
+                                ${photoHtml}
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 0.92rem;">${escapeHtml(p.name)}</div>
+                                    <small class="text-muted font-monospace" style="font-size: 0.72rem;">SKU: ${escapeHtml(p.sku)}</small>
+                                </div>
+                            </div>
                         </td>
                         <td><span class="badge bg-light text-secondary border px-2">${escapeHtml(p.category)}</span></td>
                         <td class="text-end fw-semibold">₹${p.purchase_price.toFixed(2)}</td>
@@ -370,6 +404,16 @@
                 defBlock.classList.add('d-none');
             }
 
+            document.getElementById('product_photo').value = '';
+            if (p.image) {
+                document.getElementById('product_photo_base64').value = p.image;
+                document.getElementById('product-photo-preview').src = p.image;
+                document.getElementById('product-photo-preview-block').classList.remove('d-none');
+            } else {
+                document.getElementById('product_photo_base64').value = '';
+                document.getElementById('product-photo-preview-block').classList.add('d-none');
+            }
+
             productModal.show();
         }
 
@@ -386,7 +430,8 @@
                 opening_stock: document.getElementById('opening_stock').value,
                 reorder_level: document.getElementById('reorder_level').value,
                 unit: document.getElementById('unit').value,
-                product_type: document.getElementById('product_type').value
+                product_type: document.getElementById('product_type').value,
+                image: document.getElementById('product_photo_base64').value
             };
 
             // If editing, send current stock and defective values

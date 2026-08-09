@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports Suite — StockFlow Serverless Control Hub</title>
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/custom.css">
+    <style>
+        .report-nav-tab {
+            cursor: pointer;
+            padding: 10px 18px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .report-nav-tab.active {
+            color: #10b981;
+            border-bottom: 2px solid #10b981;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Integration -->
+    <div class="sidebar-wrapper" id="sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="sidebar-brand">
+                <i class="fa-solid fa-cubes text-success"></i> <span>StockFlow</span>
+            </a>
+            <button class="btn btn-dark ms-auto d-md-none" id="sidebar-close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="sidebar-category">Catalog & Directory</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="suppliers.html"><i class="fa-solid fa-truck-field"></i> Suppliers</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="categories.html"><i class="fa-solid fa-folder-open"></i> Categories</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-category">Transactions</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="stock_in.html"><i class="fa-solid fa-circle-plus text-success"></i> Stock In</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="stock_out.html"><i class="fa-solid fa-circle-minus text-danger"></i> Stock Out</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="adjustments.html"><i class="fa-solid fa-sliders"></i> Adjustments</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="replacements.html"><i class="fa-solid fa-arrows-spin"></i> Regulator Swaps</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-category">Analytics & Logs</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item active">
+                <a href="reports.html"><i class="fa-solid fa-file-invoice"></i> Reports</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="stock_register.html"><i class="fa-solid fa-book"></i> Stock Register</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+            </li>
+        </ul>
+
+        <div class="mt-auto p-3 border-top border-dark">
+            <button onclick="logout();" class="btn btn-outline-danger w-100 btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content-wrapper">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <button class="btn btn-outline-secondary me-3 d-md-none" id="sidebar-toggle-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="d-flex align-items-center bg-light border px-3 py-1.5 rounded-pill shadow-sm" style="font-size: 0.82rem; font-weight: 500;">
+                <i class="fa-regular fa-calendar-days text-success me-2"></i>
+                <span class="text-muted me-1">Today:</span>
+                <span class="fw-bold text-dark" id="current-date">-- --, ----</span>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <div class="d-flex align-items-center text-decoration-none text-dark">
+                    <div class="avatar-initials me-2" id="user-avatar">SF</div>
+                    <div class="d-none d-md-block text-start">
+                        <div class="fw-semibold lh-1" style="font-size: 0.9rem;" id="user-name">Loading...</div>
+                        <small class="text-muted text-capitalize" style="font-size: 0.75rem;" id="user-role">...</small>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Body -->
+        <main class="content-body">
+            
+            <div class="row mb-4 align-items-center">
+                <div class="col-md-8">
+                    <h3 class="fw-bold text-dark" style="color: var(--navy-dark);"><i class="fa-solid fa-file-invoice text-success me-2"></i>Analytics & Reports Suite</h3>
+                    <p class="text-muted" style="font-size: 0.92rem;">Audit stock asset valuations, purchase metrics, and retail sales volumes.</p>
+                </div>
+                <div class="col-md-4 text-md-end no-print">
+                    <button onclick="window.print();" class="btn btn-outline-secondary px-4 btn-sm" style="border-radius: 8px;">
+                        <i class="fa-solid fa-print me-1"></i> Print Report / PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reports Tab Menu Header -->
+            <div class="card card-premium mb-4 no-print">
+                <div class="card-premium-body d-flex flex-wrap gap-2 p-2">
+                    <div class="report-nav-tab active" id="tab-valuation" onclick="switchReport('valuation')">
+                        <i class="fa-solid fa-sack-dollar me-1"></i> Stock Valuation
+                    </div>
+                    <div class="report-nav-tab" id="tab-sales" onclick="switchReport('sales')">
+                        <i class="fa-solid fa-chart-line me-1"></i> Sales Report
+                    </div>
+                    <div class="report-nav-tab" id="tab-purchases" onclick="switchReport('purchases')">
+                        <i class="fa-solid fa-cart-shopping me-1"></i> Purchases Report
+                    </div>
+                    <div class="report-nav-tab" id="tab-lowstock" onclick="switchReport('lowstock')">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i> Low Stock Alerts
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Report View Box -->
+            <div class="card card-premium">
+                <div class="card-premium-header py-3" id="active-report-title-header">
+                    <h5 class="card-premium-title fw-bold" style="font-size: 0.98rem;">Stock Valuation Statement</h5>
+                </div>
+                
+                <!-- Filters block (Shown conditionally for sales/purchases, hidden in print) -->
+                <div class="card-premium-body border-bottom bg-light py-3 d-none no-print" id="report-date-filters">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-6 col-md-5">
+                            <label for="date_from" class="form-label fw-semibold text-muted mb-1" style="font-size: 0.72rem;">START DATE</label>
+                            <input type="date" class="form-control py-1" id="date_from">
+                        </div>
+                        <div class="col-6 col-md-5">
+                            <label for="date_to" class="form-label fw-semibold text-muted mb-1" style="font-size: 0.72rem;">END DATE</label>
+                            <input type="date" class="form-control py-1" id="date_to">
+                        </div>
+                        <div class="col-12 col-md-2 d-grid">
+                            <button onclick="applyDateFilters();" class="btn btn-accent py-1">Apply Date</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-premium-body p-0">
+                    <div id="report-summary-meta" class="px-4 pt-3 pb-1"></div>
+                    
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0" style="font-size: 0.88rem;">
+                            <thead class="table-light text-uppercase text-muted" style="font-size: 0.72rem; letter-spacing: 0.05em; font-weight: 700;" id="report-table-header">
+                                <!-- Populated dynamically -->
+                            </thead>
+                            <tbody id="report-table-body">
+                                <!-- Populated dynamically -->
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">Compiling report data sheet...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Script Imports -->
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth();
+
+        let globalData = {};
+        let activeTab = 'valuation';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', options);
+
+            // User Profile
+            const user = JSON.parse(localStorage.getItem('stockflow_user') || '{}');
+            document.getElementById('user-name').textContent = user.name || 'User';
+            document.getElementById('user-role').textContent = user.role || 'Staff';
+            if (user.name) {
+                const initials = user.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('user-avatar').textContent = initials;
+            }
+
+            // Mobile menu handlers
+            const toggleBtn = document.getElementById('sidebar-toggle-btn');
+            const closeBtn = document.getElementById('sidebar-close-btn');
+            const sidebar = document.getElementById('sidebar');
+            toggleBtn.addEventListener('click', () => sidebar.classList.add('toggled'));
+            closeBtn.addEventListener('click', () => sidebar.classList.remove('toggled'));
+
+            // Set default date range
+            const today = new Date().toISOString().split('T')[0];
+            const date = new Date();
+            date.setDate(1); // First day of month
+            const firstDay = date.toISOString().split('T')[0];
+            
+            document.getElementById('date_from').value = firstDay;
+            document.getElementById('date_to').value = today;
+
+            // Load Report data
+            loadReportData();
+        });
+
+        async function loadReportData() {
+            showLoader(true);
+            const response = await apiGet('get_data');
+            showLoader(false);
+
+            if (response.success) {
+                globalData = response;
+                renderActiveReport();
+            } else {
+                notify('danger', 'Failed to retrieve reports data.');
+            }
+        }
+
+        function switchReport(tab) {
+            document.querySelectorAll('.report-nav-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            activeTab = tab;
+            renderActiveReport();
+        }
+
+        function applyDateFilters() {
+            renderActiveReport();
+        }
+
+        function renderActiveReport() {
+            const titleHeader = document.getElementById('active-report-title-header').querySelector('h5');
+            const dateFilters = document.getElementById('report-date-filters');
+            const metaBlock = document.getElementById('report-summary-meta');
+            const thead = document.getElementById('report-table-header');
+            const tbody = document.getElementById('report-table-body');
+            
+            // Clean up
+            metaBlock.innerHTML = '';
+            dateFilters.classList.add('d-none');
+
+            const dateFrom = new Date(document.getElementById('date_from').value);
+            const dateTo = new Date(document.getElementById('date_to').value);
+            dateTo.setHours(23, 59, 59); // Include full end date
+
+            if (activeTab === 'valuation') {
+                titleHeader.innerHTML = `<i class="fa-solid fa-sack-dollar text-success me-2"></i>Stock Valuation Statement`;
+                
+                thead.innerHTML = `
+                    <tr>
+                        <th>Product Item</th>
+                        <th>SKU</th>
+                        <th class="text-center">Current Stock</th>
+                        <th class="text-end">Purchase Rate (₹)</th>
+                        <th class="text-end">Valuation Cost (₹)</th>
+                    </tr>
+                `;
+
+                tbody.innerHTML = '';
+                let totalVal = 0;
+                let totalQty = 0;
+                globalData.products.forEach(p => {
+                    const rowVal = p.current_stock * p.purchase_price;
+                    totalVal += rowVal;
+                    totalQty += p.current_stock;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="fw-bold text-dark">${escapeHtml(p.name)}</td>
+                        <td><span class="badge bg-light text-secondary border font-monospace">${escapeHtml(p.sku)}</span></td>
+                        <td class="text-center fw-semibold">${p.current_stock} ${escapeHtml(p.unit)}</td>
+                        <td class="text-end">₹${p.purchase_price.toFixed(2)}</td>
+                        <td class="text-end fw-bold text-success">₹${rowVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Total Summary row
+                const tr = document.createElement('tr');
+                tr.className = "table-light fw-bold";
+                tr.innerHTML = `
+                    <td colspan="2">GRAND VALUATION TOTAL</td>
+                    <td class="text-center text-primary">${totalQty} items</td>
+                    <td></td>
+                    <td class="text-end text-success">₹${totalVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                `;
+                tbody.appendChild(tr);
+
+            } else if (activeTab === 'sales') {
+                titleHeader.innerHTML = `<i class="fa-solid fa-chart-line text-success me-2"></i>Sales Journal log`;
+                dateFilters.classList.remove('d-none');
+
+                thead.innerHTML = `
+                    <tr>
+                        <th>Invoice No</th>
+                        <th>Invoice Date</th>
+                        <th>Customer</th>
+                        <th>Product Details</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-end">Invoice Value (₹)</th>
+                    </tr>
+                `;
+
+                tbody.innerHTML = '';
+                let totalVal = 0;
+                let totalQty = 0;
+                let counter = 0;
+
+                globalData.sales.forEach(s => {
+                    const sD = new Date(s.sale_date);
+                    if (sD >= dateFrom && sD <= dateTo) {
+                        totalVal += s.total_amount;
+                        totalQty += s.quantity;
+                        counter++;
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="fw-bold text-success">INV-${s.id}</td>
+                            <td>${formatDateStr(s.sale_date)}</td>
+                            <td class="fw-semibold">${escapeHtml(s.customer_name)}</td>
+                            <td>
+                                <div class="fw-medium text-dark">${escapeHtml(s.product_name)}</div>
+                                <small class="text-muted">SKU: ${escapeHtml(s.product_sku)}</small>
+                            </td>
+                            <td class="text-center fw-bold"><span class="badge bg-light text-danger border px-3">${s.quantity}</span></td>
+                            <td class="text-end fw-bold">₹${s.total_amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+
+                if (counter === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No sales logged during the selected period.</td></tr>`;
+                    return;
+                }
+
+                // Period totals summary row
+                const tr = document.createElement('tr');
+                tr.className = "table-light fw-bold";
+                tr.innerHTML = `
+                    <td colspan="4">PERIOD TOTALS SUMMARY (${counter} invoices)</td>
+                    <td class="text-center text-danger">${totalQty} items</td>
+                    <td class="text-end text-dark">₹${totalVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                `;
+                tbody.appendChild(tr);
+
+            } else if (activeTab === 'purchases') {
+                titleHeader.innerHTML = `<i class="fa-solid fa-cart-shopping text-success me-2"></i>Purchases Journal log`;
+                dateFilters.classList.remove('d-none');
+
+                thead.innerHTML = `
+                    <tr>
+                        <th>Purchase No</th>
+                        <th>Purchase Date</th>
+                        <th>Supplier</th>
+                        <th>Product Details</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-end">Payable Cost (₹)</th>
+                    </tr>
+                `;
+
+                tbody.innerHTML = '';
+                let totalVal = 0;
+                let totalQty = 0;
+                let counter = 0;
+
+                globalData.purchases.forEach(p => {
+                    const pD = new Date(p.purchase_date);
+                    if (pD >= dateFrom && pD <= dateTo) {
+                        totalVal += p.total_amount;
+                        totalQty += p.quantity;
+                        counter++;
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="fw-bold text-primary">GP-${p.id}</td>
+                            <td>${formatDateStr(p.purchase_date)}</td>
+                            <td class="fw-semibold">${escapeHtml(p.supplier_name)}</td>
+                            <td class="fw-medium text-dark">${escapeHtml(p.product_name)}</td>
+                            <td class="text-center fw-bold"><span class="badge bg-light text-primary border px-3">${p.quantity}</span></td>
+                            <td class="text-end fw-bold text-success">₹${p.total_amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+
+                if (counter === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No stock purchases logged during the selected period.</td></tr>`;
+                    return;
+                }
+
+                // Period totals summary row
+                const tr = document.createElement('tr');
+                tr.className = "table-light fw-bold";
+                tr.innerHTML = `
+                    <td colspan="4">PERIOD TOTALS SUMMARY (${counter} supply entries)</td>
+                    <td class="text-center text-primary">${totalQty} items</td>
+                    <td class="text-end text-success">₹${totalVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                `;
+                tbody.appendChild(tr);
+
+            } else if (activeTab === 'lowstock') {
+                titleHeader.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>Critical Low Stock warning list`;
+
+                thead.innerHTML = `
+                    <tr>
+                        <th>Product Details</th>
+                        <th>SKU</th>
+                        <th>Min Reorder Alert Level</th>
+                        <th class="text-danger">Current Available Stock</th>
+                    </tr>
+                `;
+
+                tbody.innerHTML = '';
+                let counter = 0;
+
+                globalData.products.forEach(p => {
+                    const isLow = parseInt(p.current_stock) <= parseInt(p.reorder_level);
+                    if (isLow) {
+                        counter++;
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="fw-bold text-dark">${escapeHtml(p.name)}</td>
+                            <td><span class="badge bg-light text-secondary border font-monospace">${escapeHtml(p.sku)}</span></td>
+                            <td class="fw-medium">${p.reorder_level} ${escapeHtml(p.unit)}</td>
+                            <td class="text-danger fw-bold">${p.current_stock} ${escapeHtml(p.unit)}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+
+                if (counter === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-success"><i class="fa-solid fa-circle-check me-2"></i> All product inventory levels are healthy! No warning triggers.</td></tr>`;
+                }
+            }
+        }
+
+        function formatDateStr(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

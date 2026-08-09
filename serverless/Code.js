@@ -53,6 +53,10 @@ function doPost(e) {
       return handleSaveAdjustment(data);
     } else if (action === 'save_settings') {
       return handleSaveSettings(data);
+    } else if (action === 'save_category') {
+      return handleSaveCategory(data);
+    } else if (action === 'delete_category') {
+      return handleDeleteCategory(data.id);
     }
     
     return jsonResponse({ success: false, error: 'Invalid POST action.' });
@@ -92,7 +96,8 @@ function handleGetData() {
       current_stock: parseInt(prodData[i][8] || 0),
       reorder_level: parseInt(prodData[i][9] || 0),
       product_type: prodData[i][10],
-      defective_stock: parseInt(prodData[i][11] || 0)
+      defective_stock: parseInt(prodData[i][11] || 0),
+      image: prodData[i][12] || ''
     };
     products.push(p);
     
@@ -302,16 +307,29 @@ function handleGetData() {
     topSellingData.push(prodSaleCounts[pId]);
   }
 
+  // Fetch Categories
+  var catSheet = ss.getSheetByName('categories') || ss.insertSheet('categories');
+  var catData = catSheet.getDataRange().getValues();
+  var categories = [];
+  for (var i = 1; i < catData.length; i++) {
+    categories.push({
+      id: parseInt(catData[i][0]),
+      name: catData[i][1],
+      description: catData[i][2]
+    });
+  }
+
   return jsonResponse({
     success: true,
     products: products,
     suppliers: suppliers,
     customers: customers,
+    categories: categories,
     purchases: purchases,
     sales: sales,
     adjustments: adjustments,
     settings: settings,
-    customerLogs: customerLogs.slice(0, 10), // Recent 10 for dashboard
+    customerLogs: customerLogs.slice(0, 10),
     plantLogs: plantLogs.slice(0, 10),
     stats: {
       today_sales: todaySales,
@@ -439,10 +457,11 @@ function handleSaveProduct(data) {
       parseFloat(data.purchase_price),
       parseFloat(data.selling_price),
       parseInt(data.opening_stock),
-      parseInt(data.opening_stock), // current stock defaults to opening stock
+      parseInt(data.opening_stock),
       parseInt(data.reorder_level),
       data.product_type || 'standard',
-      parseInt(data.defective_stock || 0)
+      parseInt(data.defective_stock || 0),
+      data.image || ''
     ]);
   } else {
     // Update existing row
@@ -452,10 +471,11 @@ function handleSaveProduct(data) {
     sheet.getCell(rowIndex, 5).setValue(data.unit);
     sheet.getCell(rowIndex, 6).setValue(parseFloat(data.purchase_price));
     sheet.getCell(rowIndex, 7).setValue(parseFloat(data.selling_price));
-    sheet.getCell(rowIndex, 9).setValue(parseInt(data.current_stock)); // Keep current stock
+    sheet.getCell(rowIndex, 9).setValue(parseInt(data.current_stock));
     sheet.getCell(rowIndex, 10).setValue(parseInt(data.reorder_level));
     sheet.getCell(rowIndex, 11).setValue(data.product_type);
     sheet.getCell(rowIndex, 12).setValue(parseInt(data.defective_stock || 0));
+    sheet.getCell(rowIndex, 13).setValue(data.image || '');
   }
   
   return jsonResponse({ success: true, message: 'Product catalog item saved successfully!' });
@@ -1071,12 +1091,12 @@ function setupDatabase() {
   var prodSheet = ss.getSheetByName('products') || ss.insertSheet('products');
   prodSheet.clear();
   prodSheet.appendRow([
-    'id', 'name', 'sku', 'category', 'unit', 'purchase_price', 'selling_price', 'opening_stock', 'current_stock', 'reorder_level', 'product_type', 'defective_stock'
+    'id', 'name', 'sku', 'category', 'unit', 'purchase_price', 'selling_price', 'opening_stock', 'current_stock', 'reorder_level', 'product_type', 'defective_stock', 'image'
   ]);
-  prodSheet.appendRow([1, 'Regulator Emr', 'EMR', 'Regulator', 'PCS', 150, 250, 400, 400, 20, 'regulator', 36]);
-  prodSheet.appendRow([2, 'Regulator FTL', 'FTLR', 'Regulator', 'PCS', 180, 280, 100, 100, 10, 'ftl_regulator', 12]);
-  prodSheet.appendRow([3, 'Stove Single Burner', 'STV-1', 'Stove', 'PCS', 800, 1200, 50, 50, 5, 'standard', 0]);
-  prodSheet.appendRow([4, 'Gas Pipe 1.5M', 'PIPE-15', 'Pipe', 'MTR', 80, 150, 300, 300, 50, 'standard', 0]);
+  prodSheet.appendRow([1, 'Regulator Emr', 'EMR', 'Regulator', 'PCS', 150, 250, 400, 400, 20, 'regulator', 36, '']);
+  prodSheet.appendRow([2, 'Regulator FTL', 'FTLR', 'Regulator', 'PCS', 180, 280, 100, 100, 10, 'ftl_regulator', 12, '']);
+  prodSheet.appendRow([3, 'Stove Single Burner', 'STV-1', 'Stove', 'PCS', 800, 1200, 50, 50, 5, 'standard', 0, '']);
+  prodSheet.appendRow([4, 'Gas Pipe 1.5M', 'PIPE-15', 'Pipe', 'MTR', 80, 150, 300, 300, 50, 'standard', 0, '']);
   
   // 2. Setup customer_replacements
   var custSheet = ss.getSheetByName('customer_replacements') || ss.insertSheet('customer_replacements');
@@ -1131,6 +1151,14 @@ function setupDatabase() {
   setSheet.appendRow(['company_name', 'logo', 'address', 'phone', 'email', 'gstin']);
   setSheet.appendRow(['Shiv Shakti HP Gas Agency', '', 'Pandaul Bazar, Madhubani - 847234', '+91 9999888877', 'info@stockflow.com', '07AAAAA1111A1Z1']);
 
+  // 11. Setup categories
+  var catSheet = ss.getSheetByName('categories') || ss.insertSheet('categories');
+  catSheet.clear();
+  catSheet.appendRow(['id', 'name', 'description', 'created_at']);
+  catSheet.appendRow([1, 'Regulator', 'LPG Gas Regulator Items', new Date()]);
+  catSheet.appendRow([2, 'Stove', 'Domestic LPG Stove Burners', new Date()]);
+  catSheet.appendRow([3, 'Pipe', 'Suraksha LPG Rubber Tubes', new Date()]);
+
   // Remove default "Sheet1" if it exists to keep it clean
   var sheet1 = ss.getSheetByName('Sheet1');
   if (sheet1) {
@@ -1139,7 +1167,7 @@ function setupDatabase() {
     } catch(err) {}
   }
   
-  return "Database setup complete! All tabs, headers, sample products, suppliers, customers, settings, and default admin user created successfully.";
+  return "Database setup complete! All tabs, headers, sample products, suppliers, customers, categories, settings, and default admin user created successfully.";
 }
 
 // Helpers
@@ -1168,4 +1196,45 @@ function getEntityNameById(entities, id) {
     }
   }
   return 'Unknown';
+}
+
+// Core CRUD handlers: Categories
+function handleSaveCategory(data) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('categories');
+  var fileData = sheet.getDataRange().getValues();
+  
+  var id = parseInt(data.id || 0);
+  var rowIndex = -1;
+  
+  if (id > 0) {
+    for (var i = 1; i < fileData.length; i++) {
+      if (parseInt(fileData[i][0]) === id) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+  }
+  
+  if (rowIndex === -1) {
+    var newId = fileData.length > 0 ? (fileData.length) : 1;
+    sheet.appendRow([newId, data.name, data.description, new Date()]);
+  } else {
+    sheet.getCell(rowIndex, 2).setValue(data.name);
+    sheet.getCell(rowIndex, 3).setValue(data.description);
+  }
+  return jsonResponse({ success: true, message: 'Category saved successfully!' });
+}
+
+function handleDeleteCategory(id) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('categories');
+  var fileData = sheet.getDataRange().getValues();
+  for (var i = 1; i < fileData.length; i++) {
+    if (parseInt(fileData[i][0]) === parseInt(id)) {
+      sheet.deleteRow(i + 1);
+      return jsonResponse({ success: true, message: 'Category deleted successfully.' });
+    }
+  }
+  return jsonResponse({ success: false, error: 'Category not found.' });
 }
