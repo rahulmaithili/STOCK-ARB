@@ -104,11 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <button type="submit" class="btn btn-accent w-100 py-2 fw-semibold">Sign In</button>
         </form>
-        
-        <div class="text-center mt-4">
-            <span class="text-muted" style="font-size: 0.8rem;">Default Credentials:</span><br>
-            <code class="text-secondary" style="font-size: 0.85rem;">admin@stock.com / admin123</code>
-        </div>
     </div>
 
     <!-- Bootstrap 5 Bundle JS CDN -->
