@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Audits Center — StockFlow Serverless</title>
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/custom.css">
+    <style>
+        .bg-success-light { background-color: #ecfdf5; color: #10b981; }
+        .bg-primary-light { background-color: #eff6ff; color: #3b82f6; }
+        .bg-info-light { background-color: #f0fdfa; color: #0d9488; }
+        .bg-warning-light { background-color: #fffbeb; color: #d97706; }
+        .bg-danger-light { background-color: #fef2f2; color: #ef4444; }
+        .bg-secondary-light { background-color: #f8fafc; color: #64748b; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Integration -->
+    <div class="sidebar-wrapper" id="sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="sidebar-brand">
+                <i class="fa-solid fa-cubes text-success"></i> <span>StockFlow</span>
+            </a>
+            <button class="btn btn-dark ms-auto d-md-none" id="sidebar-close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="sidebar-category">Catalog & Directory</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="products.html"><i class="fa-solid fa-box"></i> Products</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="suppliers.html"><i class="fa-solid fa-truck-field"></i> Suppliers</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="customers.html"><i class="fa-solid fa-users"></i> Customers</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="categories.html"><i class="fa-solid fa-folder-open"></i> Categories</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-category">Transactions</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="stock_in.html"><i class="fa-solid fa-circle-plus text-success"></i> Stock In</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="stock_out.html"><i class="fa-solid fa-circle-minus text-danger"></i> Stock Out</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="adjustments.html"><i class="fa-solid fa-sliders"></i> Adjustments</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="replacements.html"><i class="fa-solid fa-arrows-spin"></i> Regulator Swaps</a>
+            </li>
+        </ul>
+
+        <div class="sidebar-category">Analytics & Logs</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item active">
+                <a href="reports.html"><i class="fa-solid fa-file-invoice"></i> Reports</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="stock_register.html"><i class="fa-solid fa-book"></i> Stock Register</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+            </li>
+        </ul>
+
+        <div class="mt-auto p-3 border-top border-dark">
+            <button onclick="logout();" class="btn btn-outline-danger w-100 btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content-wrapper">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <button class="btn btn-outline-secondary me-3 d-md-none" id="sidebar-toggle-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="d-flex align-items-center bg-light border px-3 py-1.5 rounded-pill shadow-sm" style="font-size: 0.82rem; font-weight: 500;">
+                <i class="fa-regular fa-calendar-days text-success me-2"></i>
+                <span class="text-muted me-1">Today:</span>
+                <span class="fw-bold text-dark" id="current-date">-- --, ----</span>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <div class="d-flex align-items-center text-decoration-none text-dark">
+                    <div class="avatar-initials me-2" id="user-avatar">SF</div>
+                    <div class="d-none d-md-block text-start">
+                        <div class="fw-semibold lh-1" style="font-size: 0.9rem;" id="user-name">Loading...</div>
+                        <small class="text-muted text-capitalize" style="font-size: 0.75rem;" id="user-role">...</small>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Body -->
+        <main class="content-body">
+            
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h3 class="fw-bold" style="color: var(--navy-dark);"><i class="fa-solid fa-chart-line me-2 text-success"></i>Reports & Audits Center</h3>
+                    <p class="text-muted" style="font-size: 0.95rem;">Export print-friendly sheets, tracking metrics, and registers.</p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Daily Stock Register Ledger -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card card-premium shadow-sm h-100">
+                        <div class="card-premium-body d-flex flex-column justify-content-between h-100">
+                            <div>
+                                <div class="bg-success-light p-3 rounded-3 mb-3 d-inline-block">
+                                    <i class="fa-solid fa-book fa-xl"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark">Daily Stock Register</h5>
+                                <p class="text-muted mt-2" style="font-size: 0.85rem;">Chronological daily ledger calculating opening stock, purchase in, sales out, corrections, and ending balances.</p>
+                            </div>
+                            <div class="d-grid mt-4">
+                                <a href="stock_register.html" class="btn btn-accent bg-success text-white">Open Register</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product-wise Inventory valuation -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card card-premium shadow-sm h-100">
+                        <div class="card-premium-body d-flex flex-column justify-content-between h-100">
+                            <div>
+                                <div class="bg-primary-light p-3 rounded-3 mb-3 d-inline-block">
+                                    <i class="fa-solid fa-boxes-stacked fa-xl"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark">Product-Wise Report</h5>
+                                <p class="text-muted mt-2" style="font-size: 0.85rem;">Complete inventory overview sheet detailing opening, total in, total out, adjustments, current stock, and asset valuation.</p>
+                            </div>
+                            <div class="d-grid mt-4">
+                                <a href="product_wise.html" class="btn btn-accent bg-primary text-white">Open Product Report</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Capital Stock Valuation Report -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card card-premium shadow-sm h-100">
+                        <div class="card-premium-body d-flex flex-column justify-content-between h-100">
+                            <div>
+                                <div class="bg-info-light p-3 rounded-3 mb-3 d-inline-block">
+                                    <i class="fa-solid fa-calculator fa-xl"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark">Stock Valuation</h5>
+                                <p class="text-muted mt-2" style="font-size: 0.85rem;">Calculate total capital asset value, potential retail returns, and projected margins based on current inventory costing.</p>
+                            </div>
+                            <div class="d-grid mt-4">
+                                <a href="valuation.html" class="btn btn-accent text-white" style="background-color: #10b981;">Open Valuation Report</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regulator Replacement Register Report -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card card-premium shadow-sm h-100">
+                        <div class="card-premium-body d-flex flex-column justify-content-between h-100">
+                            <div>
+                                <div class="bg-warning-light p-3 rounded-3 mb-3 d-inline-block">
+                                    <i class="fa-solid fa-arrows-spin fa-xl"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark">Regulator Swaps Register</h5>
+                                <p class="text-muted mt-2" style="font-size: 0.85rem;">Audit connections list and replacement logs. Tracks NC issued, TV In issued, and TV Out defective returns.</p>
+                            </div>
+                            <div class="d-grid mt-4">
+                                <a href="regulator_report.html" class="btn btn-accent text-white" style="background-color: #d97706;">Open Swaps Register</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low Stock warning Alerts -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card card-premium shadow-sm h-100">
+                        <div class="card-premium-body d-flex flex-column justify-content-between h-100">
+                            <div>
+                                <div class="bg-danger-light p-3 rounded-3 mb-3 d-inline-block">
+                                    <i class="fa-solid fa-triangle-exclamation fa-xl"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark">Low Stock Warnings</h5>
+                                <p class="text-muted mt-2" style="font-size: 0.85rem;">Filter and list all catalog items that have dipped below set threshold values requiring replenishment.</p>
+                            </div>
+                            <div class="d-grid mt-4">
+                                <a href="low_stock.html" class="btn btn-accent bg-danger text-white">View Alerts</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales invoices reports -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card card-premium shadow-sm h-100">
+                        <div class="card-premium-body d-flex flex-column justify-content-between h-100">
+                            <div>
+                                <div class="bg-warning-light p-3 rounded-3 mb-3 d-inline-block">
+                                    <i class="fa-solid fa-file-invoice-dollar fa-xl"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark">Sales Billings Report</h5>
+                                <p class="text-muted mt-2" style="font-size: 0.85rem;">Filterable transactional list of generated sales invoices, cash/credit statuses, client targets, and gross earnings.</p>
+                            </div>
+                            <div class="d-grid mt-4">
+                                <a href="sales_report.html" class="btn btn-accent text-white" style="background-color: #d97706;">Open Sales Report</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purchase receipts report -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card card-premium shadow-sm h-100">
+                        <div class="card-premium-body d-flex flex-column justify-content-between h-100">
+                            <div>
+                                <div class="bg-info-light p-3 rounded-3 mb-3 d-inline-block">
+                                    <i class="fa-solid fa-truck-ramp-box fa-xl"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark">Purchase Ledger Report</h5>
+                                <p class="text-muted mt-2" style="font-size: 0.85rem;">Log sheets of purchase deliveries received from suppliers, vendor references, and expenditure records.</p>
+                            </div>
+                            <div class="d-grid mt-4">
+                                <a href="purchase_report.html" class="btn btn-accent text-white" style="background-color: #0284c7;">Open Purchase Report</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Audits Logs -->
+                <div class="col-12 col-md-6 col-lg-4" id="admin-audits-card">
+                    <div class="card card-premium shadow-sm h-100">
+                        <div class="card-premium-body d-flex flex-column justify-content-between h-100">
+                            <div>
+                                <div class="bg-secondary-light p-3 rounded-3 mb-3 d-inline-block">
+                                    <i class="fa-solid fa-clock-rotate-left fa-xl"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark">System Audits Log</h5>
+                                <p class="text-muted mt-2" style="font-size: 0.85rem;">Track logins, manual adjustments, edits, and deletions performed across the system.</p>
+                            </div>
+                            <div class="d-grid mt-4">
+                                <a href="activity_log.html" class="btn btn-accent text-white" style="background-color: #475569;">Open Audit Logs</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Script Imports -->
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', options);
+
+            // User Info
+            const user = JSON.parse(localStorage.getItem('stockflow_user') || '{}');
+            document.getElementById('user-name').textContent = user.name || 'User';
+            document.getElementById('user-role').textContent = user.role || 'Staff';
+            if (user.name) {
+                const initials = user.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('user-avatar').textContent = initials;
+            }
+
+            // Hide audit log card if user is not admin
+            if (user.role !== 'admin') {
+                const auditCard = document.getElementById('admin-audits-card');
+                if (auditCard) auditCard.remove();
+            }
+
+            // Mobile menu handlers
+            const toggleBtn = document.getElementById('sidebar-toggle-btn');
+            const closeBtn = document.getElementById('sidebar-close-btn');
+            const sidebar = document.getElementById('sidebar');
+            toggleBtn.addEventListener('click', () => sidebar.classList.add('toggled'));
+            closeBtn.addEventListener('click', () => sidebar.classList.remove('toggled'));
+        });
+    </script>
+</body>
+</html>

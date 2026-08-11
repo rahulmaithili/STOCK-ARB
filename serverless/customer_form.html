@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Customer Swaps — StockFlow Serverless Dashboard</title>
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/custom.css">
+</head>
+<body>
+
+    <!-- Sidebar Integration -->
+    <div class="sidebar-wrapper" id="sidebar">
+        <div class="sidebar-header">
+            <a href="index.html" class="sidebar-brand">
+                <i class="fa-solid fa-cubes text-success"></i> <span>StockFlow</span>
+            </a>
+            <button class="btn btn-dark ms-auto d-md-none" id="sidebar-close-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="sidebar-category">Core Registers</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a href="index.html"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            </li>
+            <li class="sidebar-item active">
+                <a href="replacements.html"><i class="fa-solid fa-arrows-spin"></i> Regulator Swaps</a>
+            </li>
+            <li class="sidebar-item">
+                <a href="stock_register.html"><i class="fa-solid fa-file-invoice"></i> Stock Register</a>
+            </li>
+        </ul>
+        <div class="mt-auto p-3 border-top border-dark">
+            <button onclick="logout();" class="btn btn-outline-danger w-100 btn-sm"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout</button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content-wrapper">
+        <!-- Top Navbar -->
+        <nav class="top-navbar">
+            <button class="btn btn-outline-secondary me-3 d-md-none" id="sidebar-toggle-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="d-flex align-items-center bg-light border px-3 py-1.5 rounded-pill shadow-sm" style="font-size: 0.82rem; font-weight: 500;">
+                <i class="fa-regular fa-calendar-days text-success me-2"></i>
+                <span class="text-muted me-1">Today:</span>
+                <span class="fw-bold text-dark" id="current-date">-- --, ----</span>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <div class="d-flex align-items-center text-decoration-none text-dark">
+                    <div class="avatar-initials me-2" id="user-avatar">SF</div>
+                    <div class="d-none d-md-block text-start">
+                        <div class="fw-semibold lh-1" style="font-size: 0.9rem;" id="user-name">Loading...</div>
+                        <small class="text-muted text-capitalize" style="font-size: 0.75rem;" id="user-role">...</small>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Body -->
+        <main class="content-body">
+            
+            <div class="row mb-4">
+                <div class="col-12 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="fw-bold text-dark"><i class="fa-solid fa-user-tag me-2 text-warning"></i>Customer Regulator Transaction Form</h3>
+                        <p class="text-muted" style="font-size: 0.9rem; margin: 0;">Log a new Regulator Conn, TV In, TV Out, or Defective Exchange Swap.</p>
+                    </div>
+                    <a href="replacements.html" class="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5" style="border-radius: 8px;">
+                        <i class="fa-solid fa-chevron-left"></i> Back to Swaps
+                    </a>
+                </div>
+            </div>
+
+            <div class="card card-premium shadow-sm">
+                <div class="card-premium-header">
+                    <h5 class="card-premium-title fw-bold"><i class="fa-solid fa-keyboard text-success me-2"></i>New Customer Swap Details</h5>
+                </div>
+                <div class="card-premium-body">
+                    <form id="customer-swap-form" class="row g-3">
+                        
+                        <div class="col-12 col-md-6">
+                            <label for="customer_name" class="form-label fw-bold text-muted mb-1" style="font-size: 0.8rem;">CUSTOMER NAME (MANUAL)</label>
+                            <input type="text" class="form-control form-control-premium" id="customer_name" required placeholder="Enter customer full name...">
+                        </div>
+                        
+                        <div class="col-12 col-md-3">
+                            <label for="consumer_number" class="form-label fw-bold text-muted mb-1" style="font-size: 0.8rem;">CONNECTION / CONSUMER NO.</label>
+                            <input type="text" class="form-control form-control-premium" id="consumer_number" required placeholder="e.g. CX-78945">
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="mobile_number" class="form-label fw-bold text-muted mb-1" style="font-size: 0.8rem;">MOBILE NUMBER</label>
+                            <input type="tel" class="form-control form-control-premium" id="mobile_number" required placeholder="e.g. 9988776655">
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="product_id" class="form-label fw-bold text-muted mb-1" style="font-size: 0.8rem;">REGULATOR ITEM</label>
+                            <select class="form-select form-control-premium" id="product_id" required>
+                                <option value="" disabled selected>Loading regulators list...</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="quantity" class="form-label fw-bold text-muted mb-1" style="font-size: 0.8rem;">QUANTITY</label>
+                            <input type="number" class="form-control form-control-premium" id="quantity" required value="1" min="1">
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label for="swap_type" class="form-label fw-bold text-muted mb-1" style="font-size: 0.8rem;">TRANSACTION TYPE</label>
+                            <select class="form-select form-control-premium" id="swap_type" required>
+                                <option value="replacement" selected>Replacement Exchange (Swap)</option>
+                                <option value="new_connection">New Connection (NC)</option>
+                                <option value="tv_in">TV In (Transfer In)</option>
+                                <option value="tv_out">TV Out (Transfer Out)</option>
+                            </select>
+                        </div>
+
+                        <!-- Old Serial Number (Visible on Exchange / TV Out) -->
+                        <div class="col-12 col-md-6" id="old-serial-wrapper">
+                            <label for="old_regulator_no" class="form-label fw-bold text-muted mb-1" style="font-size: 0.8rem; color: var(--danger-dark) !important;">OLD REGULATOR SERIAL NUMBER</label>
+                            <input type="text" class="form-control form-control-premium" id="old_regulator_no" required placeholder="Enter old regulator serial badge number...">
+                        </div>
+
+                        <!-- New Serial Number (Visible on Exchange / NC / TV In) -->
+                        <div class="col-12 col-md-6" id="new-serial-wrapper">
+                            <label for="new_regulator_no" class="form-label fw-bold text-muted mb-1" style="font-size: 0.8rem; color: var(--success-dark) !important;">NEW REGULATOR SERIAL NUMBER</label>
+                            <input type="text" class="form-control form-control-premium" id="new_regulator_no" required placeholder="Enter new regulator serial badge number...">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="notes" class="form-label fw-bold text-muted mb-1" style="font-size: 0.8rem;">REMARKS / NOTES</label>
+                            <textarea class="form-control form-control-premium" id="notes" rows="2" placeholder="Add optional reference details (e.g. Voucher Number)..."></textarea>
+                        </div>
+
+                        <div class="col-12 mt-4 text-end">
+                            <button type="submit" id="btn-submit" class="btn btn-success px-4 py-2.5 fw-bold" style="border-radius: 10px;">
+                                <span id="btn-spinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                                <i class="fa-solid fa-floppy-disk me-1"></i> Save Transaction Ledger
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Script Imports -->
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current date
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', options);
+
+            // Populate user info
+            const user = JSON.parse(localStorage.getItem('stockflow_user') || '{}');
+            document.getElementById('user-name').textContent = user.name || 'User';
+            document.getElementById('user-role').textContent = user.role || 'Staff';
+            if (user.name) {
+                const initials = user.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+                document.getElementById('user-avatar').textContent = initials;
+            }
+
+            // Mobile sidebar toggle handlers
+            const toggleBtn = document.getElementById('sidebar-toggle-btn');
+            const closeBtn = document.getElementById('sidebar-close-btn');
+            const sidebar = document.getElementById('sidebar');
+
+            toggleBtn.addEventListener('click', () => sidebar.classList.add('toggled'));
+            closeBtn.addEventListener('click', () => sidebar.classList.remove('toggled'));
+
+            // Load Regulators dropdown list
+            loadRegulatorsDropdown();
+
+            // Setup transaction type conditional serial toggle handlers
+            document.getElementById('swap_type').addEventListener('change', toggleSerialFields);
+            toggleSerialFields(); // Trigger initially
+
+            // Form Submit handler
+            document.getElementById('customer-swap-form').addEventListener('submit', handleFormSubmit);
+        });
+
+        async function loadRegulatorsDropdown() {
+            const response = await apiGet('get_data');
+            if (response.success) {
+                const select = document.getElementById('product_id');
+                select.innerHTML = '<option value="" disabled selected>-- Select Regulator Item --</option>';
+                
+                const regulators = response.products.filter(p => p.product_type === 'regulator');
+                
+                if (regulators.length === 0) {
+                    select.innerHTML = '<option value="" disabled>No regulators registered in Sheets.</option>';
+                    return;
+                }
+
+                regulators.forEach(r => {
+                    const option = document.createElement('option');
+                    option.value = r.id;
+                    option.textContent = `${r.name} (SKU: ${r.sku}) - Stock: ${r.current_stock} Good`;
+                    select.appendChild(option);
+                });
+            } else {
+                notify('danger', 'Failed to fetch regulator products catalog.');
+            }
+        }
+
+        function toggleSerialFields() {
+            const type = document.getElementById('swap_type').value;
+            const oldWrapper = document.getElementById('old-serial-wrapper');
+            const newWrapper = document.getElementById('new-serial-wrapper');
+            
+            const oldInput = document.getElementById('old_regulator_no');
+            const newInput = document.getElementById('new_regulator_no');
+
+            if (type === 'new_connection' || type === 'tv_in') {
+                // Good stock goes out: requires NEW serial number only
+                oldWrapper.style.display = 'none';
+                oldInput.required = false;
+                oldInput.value = '';
+                
+                newWrapper.style.display = 'block';
+                newInput.required = true;
+            } else if (type === 'tv_out') {
+                // Defective stock comes in: requires OLD serial number only
+                oldWrapper.style.display = 'block';
+                oldInput.required = true;
+                
+                newWrapper.style.display = 'none';
+                newInput.required = false;
+                newInput.value = '';
+            } else if (type === 'replacement') {
+                // Exchange: requires BOTH old & new serial numbers
+                oldWrapper.style.display = 'block';
+                oldInput.required = true;
+                
+                newWrapper.style.display = 'block';
+                newInput.required = true;
+            }
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('btn-submit');
+            const spinner = document.getElementById('btn-spinner');
+            
+            const payload = {
+                customer_name: document.getElementById('customer_name').value.trim(),
+                consumer_number: document.getElementById('consumer_number').value.trim(),
+                mobile_number: document.getElementById('mobile_number').value.trim(),
+                product_id: document.getElementById('product_id').value,
+                quantity: document.getElementById('quantity').value,
+                swap_type: document.getElementById('swap_type').value,
+                old_regulator_no: document.getElementById('old_regulator_no').value.trim(),
+                new_regulator_no: document.getElementById('new_regulator_no').value.trim(),
+                notes: document.getElementById('notes').value.trim(),
+                replacement_date: new Date().toISOString().split('T')[0] // today's date
+            };
+
+            // Loading state
+            spinner.classList.remove('d-none');
+            submitBtn.disabled = true;
+
+            const response = await apiPost('customer_txn', payload);
+            
+            spinner.classList.add('d-none');
+            submitBtn.disabled = false;
+
+            if (response.success) {
+                notify('success', response.message || 'Transaction saved successfully!');
+                setTimeout(() => {
+                    window.location.href = 'replacements.html';
+                }, 1500);
+            } else {
+                notify('danger', response.error || 'Failed to save transaction.');
+            }
+        }
+    </script>
+</body>
+</html>
