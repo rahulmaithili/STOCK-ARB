@@ -11,6 +11,14 @@ try {
     // Enable foreign keys constraints in SQLite
     $pdo->exec("PRAGMA foreign_keys = ON");
 
+    // Register custom SQLite functions for MySQL compatibility
+    $pdo->sqliteCreateFunction('CURDATE', function() {
+        return date('Y-m-d');
+    });
+    $pdo->sqliteCreateFunction('NOW', function() {
+        return date('Y-m-d H:i:s');
+    });
+
     // Check if the 'users' table exists, indicating migrations have run
     $stmt = $pdo->query("SELECT name FROM sqlite_master WHERE type='table' AND name='users'");
     $users_table_exists = (bool)$stmt->fetch();
