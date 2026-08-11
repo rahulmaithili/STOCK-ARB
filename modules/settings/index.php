@@ -331,40 +331,224 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                     <!-- Tab 3: Database Backup & Restore -->
                     <div class="tab-pane fade" id="backup-panel" role="tabpanel" aria-labelledby="backup-tab">
                         <div class="row g-4 p-2">
+                            <!-- Left Side: Local File Backup -->
                             <div class="col-12 col-md-6">
-                                <h5 class="fw-bold text-dark mb-4">Export Database Backup</h5>
-                                <p class="text-muted" style="font-size: 0.9rem; line-height: 1.6; max-width: 480px;">
-                                    Aap apne offline system ka backup le sakte hain. Yeh backup file (<code>.db</code> extension) download ho jayegi jise aap Pen drive me rakh kar doosre PC me import kar sakte hain.
-                                </p>
-                                <a href="index.php?action=download_backup" class="btn btn-success px-4 py-2 d-inline-flex align-items-center gap-2 mt-2">
-                                    <i class="fa-solid fa-download"></i> Download Backup File (.db)
-                                </a>
+                                <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-file-export me-2 text-success"></i>Local Backup (Offline)</h5>
+                                <div class="bg-light p-3 rounded-4 mb-4">
+                                    <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px;">
+                                        Aap apne offline system ka manual backup file (<code>.db</code> extension) download karke Pendrive me save kar sakte hain.
+                                    </p>
+                                    <a href="index.php?action=download_backup" class="btn btn-success btn-sm px-3 py-2 d-inline-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-download"></i> Download Backup File (.db)
+                                    </a>
+                                </div>
+
+                                <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-file-import me-2 text-danger"></i>Local Restore (Offline)</h5>
+                                <div class="bg-light p-3 rounded-4">
+                                    <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px;">
+                                        Kisi doosre computer se laya hua backup (<code>.db</code> file) yahan upload karke database restore kar sakte hain.
+                                        <br>
+                                        <span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> WARNING:</span> Baki sabhi records overwrite ho jayenge!
+                                    </p>
+                                    <form action="index.php" method="POST" enctype="multipart/form-data" style="max-width: 100%;">
+                                        <?php echo csrf_input(); ?>
+                                        <input type="hidden" name="action" value="restore_db">
+                                        <div class="mb-3">
+                                            <input type="file" class="form-control form-control-sm" id="backup_file" name="backup_file" accept=".db" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger btn-sm px-3 py-2 d-inline-flex align-items-center gap-2" <?php echo !is_admin() ? 'disabled' : ''; ?>>
+                                            <i class="fa-solid fa-upload"></i> Upload & Restore Database
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
 
-                            <div class="col-12 col-md-6 border-start ps-md-5">
-                                <h5 class="fw-bold text-dark mb-4">Import / Restore Backup</h5>
-                                <p class="text-muted" style="font-size: 0.9rem; line-height: 1.6; max-width: 480px;">
-                                    Kisi doosre computer se laya hua backup (<code>.db</code> file) yahan upload karke database restore kar sakte hain.
-                                    <br><br>
-                                    <span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> WARNING:</span> Backup upload karne par abhi chal raha database overwrite ho jayega!
-                                </p>
+                            <!-- Right Side: Google Drive Cloud Backup (Desktop App Only) -->
+                            <div class="col-12 col-md-6 border-start ps-md-5" id="gdrive-sync-section" style="display: none;">
+                                <h5 class="fw-bold text-dark mb-3"><i class="fa-brands fa-google-drive me-2 text-primary"></i>Google Drive Cloud Sync</h5>
                                 
-                                <form action="index.php" method="POST" enctype="multipart/form-data" class="mt-3" style="max-width: 400px;">
-                                    <?php echo csrf_input(); ?>
-                                    <input type="hidden" name="action" value="restore_db">
-                                    
-                                    <div class="mb-3">
-                                        <label for="backup_file" class="form-label fw-semibold text-muted" style="font-size: 0.8rem;">CHOOSE BACKUP FILE (.DB) *</label>
-                                        <input type="file" class="form-control form-control-premium" id="backup_file" name="backup_file" accept=".db" required>
+                                <!-- Connection Status -->
+                                <div class="alert alert-info py-3 mb-4 rounded-4 d-flex align-items-center gap-3" id="gdrive-status-alert">
+                                    <i class="fa-brands fa-google-drive fa-2x text-primary" id="gdrive-status-icon"></i>
+                                    <div>
+                                        <h6 class="fw-bold mb-1" id="gdrive-status-title">Checking Google Drive Connection...</h6>
+                                        <small class="text-muted d-block" id="gdrive-status-desc">Loading configuration settings...</small>
                                     </div>
-                                    
-                                    <button type="submit" class="btn btn-danger px-4 py-2 d-inline-flex align-items-center gap-2" <?php echo !is_admin() ? 'disabled' : ''; ?>>
-                                        <i class="fa-solid fa-upload"></i> Upload & Restore Database
-                                    </button>
-                                </form>
+                                </div>
+
+                                <!-- Credentials Box (When not linked) -->
+                                <div id="gdrive-credentials-form" style="display: none;">
+                                    <div class="bg-light p-3 rounded-4 mb-3">
+                                        <h6 class="fw-bold text-dark mb-2">Google Drive API Configuration</h6>
+                                        <p class="text-muted" style="font-size: 0.78rem; line-height: 1.4; margin-bottom: 12px;">
+                                            Google account link karne ke liye aapko pehle Google Developer Console se <strong>OAuth Client ID</strong> set karna hoga.
+                                        </p>
+                                        <div class="mb-2">
+                                            <label for="gdrive_client_id" class="form-label fw-semibold text-muted" style="font-size: 0.72rem; margin-bottom: 4px;">GOOGLE CLIENT ID</label>
+                                            <input type="text" class="form-control form-control-sm" id="gdrive_client_id" placeholder="Paste Client ID here...">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="gdrive_client_secret" class="form-label fw-semibold text-muted" style="font-size: 0.72rem; margin-bottom: 4px;">GOOGLE CLIENT SECRET</label>
+                                            <input type="password" class="form-control form-control-sm" id="gdrive_client_secret" placeholder="Paste Client Secret here...">
+                                        </div>
+                                        <button type="button" class="btn btn-primary btn-sm px-3 py-2 d-inline-flex align-items-center gap-2" id="gdrive-connect-btn">
+                                            <i class="fa-solid fa-link"></i> Link Google Drive Account
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Actions Box (When linked) -->
+                                <div id="gdrive-actions" style="display: none;">
+                                    <div class="d-flex flex-column gap-3">
+                                        <button type="button" class="btn btn-primary px-4 py-2.5 d-inline-flex align-items-center justify-content-center gap-2" id="gdrive-sync-btn">
+                                            <i class="fa-solid fa-cloud-arrow-up"></i> Sync Database to Cloud
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger px-4 py-2.5 d-inline-flex align-items-center justify-content-center gap-2" id="gdrive-restore-btn">
+                                            <i class="fa-solid fa-cloud-arrow-down"></i> Restore Database from Cloud
+                                        </button>
+                                        <button type="button" class="btn btn-link text-danger btn-sm mt-2" id="gdrive-disconnect-btn">
+                                            Disconnect Google Account
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Notice for standard web browser view (not Electron) -->
+                            <div class="col-12 col-md-6 border-start ps-md-5 text-center py-5" id="gdrive-web-notice">
+                                <i class="fa-brands fa-google-drive fa-4x text-muted mb-3 opacity-50"></i>
+                                <h6 class="fw-bold text-muted">Google Drive Sync (Desktop App Only)</h6>
+                                <p class="text-muted mx-auto" style="font-size: 0.85rem; max-width: 320px;">
+                                    Google Drive background automatic backup feature sirf desktop app software ke andar hi available hai.
+                                </p>
                             </div>
                         </div>
                     </div>
+
+                    <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        // Check if running inside Electron desktop app wrapper
+                        if (window.electronAPI) {
+                            document.getElementById('gdrive-sync-section').style.display = 'block';
+                            document.getElementById('gdrive-web-notice').style.display = 'none';
+
+                            // Load current Google Drive connection status
+                            refreshGDriveStatus();
+                        }
+
+                        async function refreshGDriveStatus() {
+                            const status = await window.electronAPI.getGoogleDriveStatus();
+                            const alertBox = document.getElementById('gdrive-status-alert');
+                            const statusTitle = document.getElementById('gdrive-status-title');
+                            const statusDesc = document.getElementById('gdrive-status-desc');
+                            const credentialsForm = document.getElementById('gdrive-credentials-form');
+                            const actionButtons = document.getElementById('gdrive-actions');
+
+                            if (status.linked) {
+                                alertBox.className = "alert alert-success py-3 mb-4 rounded-4 d-flex align-items-center gap-3";
+                                statusTitle.textContent = "Google Drive Linked";
+                                statusDesc.innerHTML = `Linked account: <strong>${status.email}</strong><br>` + 
+                                                       (status.lastSync ? `Last synced: ${status.lastSync}` : "Not synced yet.");
+                                credentialsForm.style.display = 'none';
+                                actionButtons.style.display = 'block';
+                            } else {
+                                alertBox.className = "alert alert-warning py-3 mb-4 rounded-4 d-flex align-items-center gap-3";
+                                statusTitle.textContent = "Google Drive Not Linked";
+                                statusDesc.textContent = "Please configure your client credentials and link your account.";
+                                credentialsForm.style.display = 'block';
+                                actionButtons.style.display = 'none';
+
+                                // Prefill credentials if saved
+                                if (status.credentials) {
+                                    document.getElementById('gdrive_client_id').value = status.credentials.clientId || '';
+                                    document.getElementById('gdrive_client_secret').value = status.credentials.clientSecret || '';
+                                }
+                            }
+                        }
+
+                        // Connect Action
+                        const connectBtn = document.getElementById('gdrive-connect-btn');
+                        if (connectBtn) {
+                            connectBtn.addEventListener('click', async () => {
+                                const clientId = document.getElementById('gdrive_client_id').value.trim();
+                                const clientSecret = document.getElementById('gdrive_client_secret').value.trim();
+
+                                if (!clientId || !clientSecret) {
+                                    alert("Please fill in both Google Client ID and Client Secret.");
+                                    return;
+                                }
+
+                                connectBtn.disabled = true;
+                                connectBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Linking Account...';
+
+                                const res = await window.electronAPI.linkGoogleDrive(clientId, clientSecret);
+                                if (res.success) {
+                                    alert("Google Drive linked successfully!");
+                                    refreshGDriveStatus();
+                                } else {
+                                    alert("Authentication Failed: " + res.error);
+                                }
+
+                                connectBtn.disabled = false;
+                                connectBtn.innerHTML = '<i class="fa-solid fa-link"></i> Link Google Drive Account';
+                            });
+                        }
+
+                        // Sync Action
+                        const syncBtn = document.getElementById('gdrive-sync-btn');
+                        if (syncBtn) {
+                            syncBtn.addEventListener('click', async () => {
+                                syncBtn.disabled = true;
+                                syncBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing to Cloud...';
+
+                                const res = await window.electronAPI.syncDatabaseToCloud();
+                                if (res.success) {
+                                    alert("Database backup synced successfully to Google Drive!");
+                                    refreshGDriveStatus();
+                                } else {
+                                    alert("Sync Failed: " + res.error);
+                                }
+
+                                syncBtn.disabled = false;
+                                syncBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Sync Database to Cloud';
+                            });
+                        }
+
+                        // Restore Action
+                        const restoreBtn = document.getElementById('gdrive-restore-btn');
+                        if (restoreBtn) {
+                            restoreBtn.addEventListener('click', async () => {
+                                if (!confirm("Are you sure you want to restore? Your current database will be overwritten with the cloud backup!")) {
+                                    return;
+                                }
+
+                                restoreBtn.disabled = true;
+                                restoreBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Downloading & Restoring...';
+
+                                const res = await window.electronAPI.restoreDatabaseFromCloud();
+                                if (res.success) {
+                                    alert("Database successfully restored from Google Drive! The application will reload.");
+                                    window.location.reload();
+                                } else {
+                                    alert("Restore Failed: " + res.error);
+                                }
+
+                                restoreBtn.disabled = false;
+                                restoreBtn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Restore Database from Cloud';
+                            });
+                        }
+
+                        // Disconnect Action
+                        const disconnectBtn = document.getElementById('gdrive-disconnect-btn');
+                        if (disconnectBtn) {
+                            disconnectBtn.addEventListener('click', async () => {
+                                if (confirm("Disconnect Google Account? Your saved credentials and backup link will be removed locally.")) {
+                                    await window.electronAPI.unlinkGoogleDrive();
+                                    refreshGDriveStatus();
+                                }
+                            });
+                        }
+                    });
+                    </script>
 
                 </div>
             </div>
