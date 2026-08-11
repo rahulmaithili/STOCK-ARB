@@ -117,14 +117,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="modal-body py-4">
                     <p class="text-muted mb-3" style="font-size: 0.92rem; line-height: 1.6;">
-                        Aapka software **Offline Local Database (SQLite)** par chal raha hai. Security aur offline functionality ke liye password reset karne ka direct tarika niche diya gaya hai:
+                        Aapka software **Offline Local Database (SQLite)** par chal raha hai. Password reset karne ke liye aapke pass do options hain:
                     </p>
+                    
+                    <!-- Case 1: Staff User -->
+                    <div class="bg-light p-3 rounded-4 border mb-3">
+                        <h6 class="fw-bold text-dark mb-1.5"><i class="fa-solid fa-user-shield text-primary me-2"></i>Staff / Manager Users:</h6>
+                        <p class="text-muted mb-0" style="font-size: 0.84rem; line-height: 1.5;">
+                            Apne **System Administrator (Owner)** se contact karein. Admin apne settings panel me <strong>"Manage User Roles"</strong> me jaakar aapka password turant reset kar sakte hain.
+                        </p>
+                    </div>
+                    
+                    <!-- Case 2: Admin User -->
                     <div class="bg-light p-3 rounded-4 border">
-                        <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-terminal text-success me-2"></i>Reset Admin Credentials:</h6>
-                        <ol class="text-muted ps-3 mb-0" style="font-size: 0.85rem; line-height: 1.6;">
-                            <li class="mb-1.5">Apne StockARB software folder (📁 <code>StockARB-win32-x64</code>) me jaein.</li>
-                            <li class="mb-1.5">Wahan **<code>Reset-Admin-Password.bat</code>** file par double-click karein.</li>
-                            <li>Aapka Administrator password reset hokar wapas default **<code>admin123</code>** ho jayega!</li>
+                        <h6 class="fw-bold text-dark mb-1.5"><i class="fa-solid fa-key text-success me-2"></i>System Administrator (Owner):</h6>
+                        <ol class="text-muted ps-3 mb-0" style="font-size: 0.82rem; line-height: 1.5;">
+                            <li class="mb-1">Apne software folder (📁 <code>StockARB-win32-x64</code>) me jayein.</li>
+                            <li class="mb-1">Wahan **<code>Reset-Admin-Password.bat</code>** file par double-click karein.</li>
+                            <li>Aapka Admin password reset hokar default **<code>admin123</code>** ho jayega.</li>
                         </ol>
                     </div>
                 </div>
