@@ -5,6 +5,22 @@ require_once dirname(dirname(__DIR__)) . '/includes/functions.php';
 require_login();
 $role = $_SESSION['user_role'] ?? 'staff';
 
+// Handle Database Download Backup BEFORE any HTML output
+if (isset($_GET['action']) && $_GET['action'] === 'download_backup') {
+    $dbPath = dirname(dirname(__DIR__)) . '/database.db';
+    if (file_exists($dbPath)) {
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="stock_backup_' . date('Y-m-d_H-i-s') . '.db"');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($dbPath));
+        readfile($dbPath);
+        exit();
+    }
+}
+
 $error = '';
 $success = '';
 
@@ -115,6 +131,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
             }
+        } elseif ($action === 'restore_db') {
+            if (!is_admin()) {
+                $error = "Unauthorized: Only Administrators can restore backups.";
+            } else {
+                if (isset($_FILES['backup_file']) && $_FILES['backup_file']['error'] === UPLOAD_ERR_OK) {
+                    $tmpPath = $_FILES['backup_file']['tmp_name'];
+                    $fileName = $_FILES['backup_file']['name'];
+                    $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                    
+                    if ($ext === 'db') {
+                        $dbPath = dirname(dirname(__DIR__)) . '/database.db';
+                        
+                        // Close PDO connection to release file lock
+                        $pdo = null;
+                        
+                        if (copy($tmpPath, $dbPath)) {
+                            // Reconnect PDO
+                            $pdo = new PDO("sqlite:" . $dbPath);
+                            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                            $pdo->sqliteCreateFunction('CURDATE', function() { return date('Y-m-d'); });
+                            $pdo->sqliteCreateFunction('NOW', function() { return date('Y-m-d H:i:s'); });
+
+                            $success = "Database backup restored successfully!";
+                            log_activity($pdo, "Restored database backup: " . $fileName);
+                        } else {
+                            $error = "Failed to restore database file. Check write permissions.";
+                        }
+                    } else {
+                        $error = "Invalid file type. Please select a .db backup file.";
+                    }
+                } else {
+                    $error = "Please choose a valid database backup file to upload.";
+                }
+            }
         }
     }
 }
@@ -164,6 +215,11 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                     <li class="nav-item" role="presentation">
                         <button class="nav-link fw-bold border-0 px-4 py-2" id="company-tab" data-bs-toggle="tab" data-bs-target="#company-panel" type="button" role="tab" aria-controls="company-panel" aria-selected="false">
                             <i class="fa-solid fa-building me-1"></i> Company Profile & Logo
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold border-0 px-4 py-2" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup-panel" type="button" role="tab" aria-controls="backup-panel" aria-selected="false">
+                            <i class="fa-solid fa-database me-1"></i> Database Backup & Restore
                         </button>
                     </li>
                 </ul>
@@ -270,6 +326,44 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                                 </div>
                             </div>
                         </form>
+                    </div>
+
+                    <!-- Tab 3: Database Backup & Restore -->
+                    <div class="tab-pane fade" id="backup-panel" role="tabpanel" aria-labelledby="backup-tab">
+                        <div class="row g-4 p-2">
+                            <div class="col-12 col-md-6">
+                                <h5 class="fw-bold text-dark mb-4">Export Database Backup</h5>
+                                <p class="text-muted" style="font-size: 0.9rem; line-height: 1.6; max-width: 480px;">
+                                    Aap apne offline system ka backup le sakte hain. Yeh backup file (<code>.db</code> extension) download ho jayegi jise aap Pen drive me rakh kar doosre PC me import kar sakte hain.
+                                </p>
+                                <a href="index.php?action=download_backup" class="btn btn-success px-4 py-2 d-inline-flex align-items-center gap-2 mt-2">
+                                    <i class="fa-solid fa-download"></i> Download Backup File (.db)
+                                </a>
+                            </div>
+
+                            <div class="col-12 col-md-6 border-start ps-md-5">
+                                <h5 class="fw-bold text-dark mb-4">Import / Restore Backup</h5>
+                                <p class="text-muted" style="font-size: 0.9rem; line-height: 1.6; max-width: 480px;">
+                                    Kisi doosre computer se laya hua backup (<code>.db</code> file) yahan upload karke database restore kar sakte hain.
+                                    <br><br>
+                                    <span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> WARNING:</span> Backup upload karne par abhi chal raha database overwrite ho jayega!
+                                </p>
+                                
+                                <form action="index.php" method="POST" enctype="multipart/form-data" class="mt-3" style="max-width: 400px;">
+                                    <?php echo csrf_input(); ?>
+                                    <input type="hidden" name="action" value="restore_db">
+                                    
+                                    <div class="mb-3">
+                                        <label for="backup_file" class="form-label fw-semibold text-muted" style="font-size: 0.8rem;">CHOOSE BACKUP FILE (.DB) *</label>
+                                        <input type="file" class="form-control form-control-premium" id="backup_file" name="backup_file" accept=".db" required>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-danger px-4 py-2 d-inline-flex align-items-center gap-2" <?php echo !is_admin() ? 'disabled' : ''; ?>>
+                                        <i class="fa-solid fa-upload"></i> Upload & Restore Database
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
 
                 </div>

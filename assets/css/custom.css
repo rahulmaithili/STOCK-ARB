@@ -386,9 +386,27 @@ table.dataTable {
 }
 
 @media (min-width: 992px) {
+    .sidebar-wrapper {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    .main-content-wrapper {
+        margin-left: 260px;
+        transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
     /* Desktop Collapsed Sidebar mode */
     .sidebar-wrapper.toggled {
         width: 70px;
+    }
+
+    .sidebar-wrapper.toggled ~ .main-content-wrapper {
+        margin-left: 70px;
     }
     
     /* Hide Text labels when collapsed */
