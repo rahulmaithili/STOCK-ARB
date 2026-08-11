@@ -93,8 +93,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <div class="mb-4">
-                <div class="d-flex justify-content-between">
-                    <label for="password" class="form-label fw-semibold text-muted" style="font-size: 0.8rem;">PASSWORD</label>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="password" class="form-label fw-semibold text-muted mb-0" style="font-size: 0.8rem;">PASSWORD</label>
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal" class="text-decoration-none fw-semibold" style="font-size: 0.78rem; color: var(--primary);">Forgot Password?</a>
                 </div>
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0 text-muted" style="border-radius: 10px 0 0 10px;"><i class="fa-solid fa-lock"></i></span>
@@ -104,6 +105,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <button type="submit" class="btn btn-accent w-100 py-2 fw-semibold">Sign In</button>
         </form>
+    </div>
+
+    <!-- Forgot Password Info Modal -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark" id="forgotPasswordModalLabel"><i class="fa-solid fa-key text-warning me-2"></i>Forgot Password?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <p class="text-muted mb-3" style="font-size: 0.92rem; line-height: 1.6;">
+                        Aapka software **Offline Local Database (SQLite)** par chal raha hai. Security aur offline functionality ke liye password reset karne ka direct tarika niche diya gaya hai:
+                    </p>
+                    <div class="bg-light p-3 rounded-4 border">
+                        <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-terminal text-success me-2"></i>Reset Admin Credentials:</h6>
+                        <ol class="text-muted ps-3 mb-0" style="font-size: 0.85rem; line-height: 1.6;">
+                            <li class="mb-1.5">Apne StockARB software folder (📁 <code>StockARB-win32-x64</code>) me jaein.</li>
+                            <li class="mb-1.5">Wahan **<code>Reset-Admin-Password.bat</code>** file par double-click karein.</li>
+                            <li>Aapka Administrator password reset hokar wapas default **<code>admin123</code>** ho jayega!</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal" style="border-radius: 10px;">Got It</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap 5 Bundle JS CDN -->
