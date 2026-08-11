@@ -2,14 +2,37 @@
 require_once __DIR__ . '/config.php';
 
 try {
-    // Connect to MySQL server without selecting DB first
-    $pdo = new PDO("mysql:host=" . DB_HOST . ";charset=utf8mb4", DB_USER, DB_PASS);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-
-    // Create database if it does not exist
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdo->exec("USE `" . DB_NAME . "`");
+    // Attempt connecting directly to the database first
+    $dsn = "mysql:host=" . DB_HOST;
+    if (defined('DB_PORT') && DB_PORT !== '') {
+        $dsn .= ";port=" . DB_PORT;
+    }
+    $dsn .= ";dbname=" . DB_NAME . ";charset=utf8mb4";
+    
+    try {
+        $pdo = new PDO($dsn, DB_USER, DB_PASS);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        // If connection failed because database doesn't exist, try connecting without dbname to create it (for localhost setups)
+        if ($e->getCode() == 1049 || strpos($e->getMessage(), 'Unknown database') !== false || strpos($e->getMessage(), '1049') !== false) {
+            $dsnWithoutDb = "mysql:host=" . DB_HOST;
+            if (defined('DB_PORT') && DB_PORT !== '') {
+                $dsnWithoutDb .= ";port=" . DB_PORT;
+            }
+            $dsnWithoutDb .= ";charset=utf8mb4";
+            
+            $tempPdo = new PDO($dsnWithoutDb, DB_USER, DB_PASS);
+            $tempPdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+            
+            // Reconnect now that database is created
+            $pdo = new PDO($dsn, DB_USER, DB_PASS);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        } else {
+            throw $e;
+        }
+    }
 
     // Check if the 'users' table exists, indicating migrations have run
     $stmt = $pdo->query("SHOW TABLES LIKE 'users'");
