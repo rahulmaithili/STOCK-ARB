@@ -49,6 +49,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $action = $_POST['action'] ?? '';
 
+        if ($action === 'update_avatar') {
+            if (isset($_FILES['avatar_file']) && $_FILES['avatar_file']['error'] === UPLOAD_ERR_OK) {
+                $file = $_FILES['avatar_file'];
+                $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+                
+                if (!in_array($file['type'], $allowed_types)) {
+                    $error = "Only JPG, PNG, and GIF images are allowed.";
+                } elseif ($file['size'] > 2 * 1024 * 1024) {
+                    $error = "Image size must be less than 2MB.";
+                } else {
+                    $upload_dir = dirname(dirname(__DIR__)) . '/uploads/avatars/';
+                    if (!file_exists($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
+                    }
+                    
+                    $dest_file = $upload_dir . 'avatar_' . $_SESSION['user_id'] . '.jpg';
+                    if (move_uploaded_file($file['tmp_name'], $dest_file)) {
+                        $success = "Profile photo updated successfully!";
+                    } else {
+                        $error = "Failed to save uploaded photo.";
+                    }
+                }
+            } else {
+                $error = "Please select a valid image file.";
+            }
+        }
+
         if ($action === 'update_profile') {
             // Update Password
             $current_pass = $_POST['current_password'] ?? '';
@@ -252,6 +279,31 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                         <div class="row g-4">
                             <!-- Left Side: Change Password -->
                             <div class="col-12 col-md-6">
+                                <h5 class="fw-bold text-dark mb-3">Profile Photo</h5>
+                                <div class="d-flex align-items-center gap-3 mb-4">
+                                    <?php 
+                                    $avatar_path = 'uploads/avatars/avatar_' . $_SESSION['user_id'] . '.jpg';
+                                    $avatar_full_path = dirname(dirname(__DIR__)) . '/' . $avatar_path;
+                                    if (file_exists($avatar_full_path)): ?>
+                                        <img src="<?php echo BASE_URL . $avatar_path . '?v=' . time(); ?>" class="rounded-circle border" style="width: 70px; height: 70px; object-fit: cover;">
+                                    <?php else: ?>
+                                        <div class="bg-light d-flex align-items-center justify-content-center border rounded-circle" style="width: 70px; height: 70px;">
+                                            <i class="fa-solid fa-user fa-2x text-muted"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <form action="index.php" method="POST" enctype="multipart/form-data" class="flex-grow-1">
+                                        <?php echo csrf_input(); ?>
+                                        <input type="hidden" name="action" value="update_avatar">
+                                        <div class="input-group input-group-sm mb-2">
+                                            <input type="file" class="form-control form-control-sm" name="avatar_file" accept="image/*" required style="border-radius: 8px 0 0 8px;">
+                                            <button type="submit" class="btn btn-primary btn-sm px-3" style="border-radius: 0 8px 8px 0;">Upload</button>
+                                        </div>
+                                        <small class="text-muted d-block" style="font-size: 0.72rem; line-height: 1.2;">JPEG, PNG formats only. Max 2MB.</small>
+                                    </form>
+                                </div>
+                                <hr class="my-4 text-muted">
+
                                 <h5 class="fw-bold text-dark mb-4">Change User Password</h5>
                                 <form action="index.php" method="POST">
                                     <?php echo csrf_input(); ?>

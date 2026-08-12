@@ -105,18 +105,25 @@ try {
                 <!-- User Profile Dropdown -->
                 <div class="navbar-user-profile dropdown">
                     <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <div class="avatar-initials me-2">
-                            <?php 
-                            $initials = '';
-                            if (isset($_SESSION['user_name'])) {
-                                $words = explode(' ', $_SESSION['user_name']);
-                                foreach ($words as $w) {
-                                    $initials .= strtoupper(substr($w, 0, 1));
+                        <?php 
+                        $avatar_path = 'uploads/avatars/avatar_' . ($_SESSION['user_id'] ?? 0) . '.jpg';
+                        $avatar_full_path = dirname(__DIR__) . '/' . $avatar_path;
+                        if (file_exists($avatar_full_path)): ?>
+                            <img src="<?php echo BASE_URL . $avatar_path . '?v=' . time(); ?>" class="rounded-circle me-2 border" style="width: 32px; height: 32px; object-fit: cover;">
+                        <?php else: ?>
+                            <div class="avatar-initials me-2">
+                                <?php 
+                                $initials = '';
+                                if (isset($_SESSION['user_name'])) {
+                                    $words = explode(' ', $_SESSION['user_name']);
+                                    foreach ($words as $w) {
+                                        $initials .= strtoupper(substr($w, 0, 1));
+                                    }
                                 }
-                            }
-                            echo !empty($initials) ? substr($initials, 0, 2) : 'US';
-                            ?>
-                        </div>
+                                echo !empty($initials) ? substr($initials, 0, 2) : 'US';
+                                ?>
+                            </div>
+                        <?php endif; ?>
                         <div class="d-none d-md-block text-start">
                             <div class="fw-semibold lh-1" style="font-size: 0.9rem;"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></div>
                             <small class="text-muted text-capitalize" style="font-size: 0.75rem;"><?php echo htmlspecialchars($_SESSION['user_role'] ?? 'Staff'); ?></small>
