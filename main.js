@@ -1,15 +1,21 @@
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
 const https = require('https');
+const http = require('http');
+const url = require('url');
 const AdmZip = require('adm-zip');
+const { google } = require('googleapis');
 
 let mainWindow;
 let phpServerProcess;
 
 // Get local app version from package.json
 const localVersion = require('./package.json').version;
+
+// Google Drive Config path
+const gdriveConfigPath = path.join(app.getPath('userData'), 'gdrive-config.json');
 
 function startPhpServer() {
   const phpBinaryPath = path.join(__dirname, 'php', 'php.exe');
@@ -30,6 +36,286 @@ function startPhpServer() {
     console.error('Failed to start PHP server:', err);
   });
 }
+
+// ----------------------------------------------------
+// Google Drive Sync Engine & Authentication Handlers
+// ----------------------------------------------------
+
+function getGDriveConfig() {
+  if (fs.existsSync(gdriveConfigPath)) {
+    try {
+      return JSON.parse(fs.readFileSync(gdriveConfigPath, 'utf8'));
+    } catch (e) {
+      console.error('Failed to read gdrive config:', e);
+    }
+  }
+  return { linked: false, credentials: null, tokens: null, email: '', lastSync: '' };
+}
+
+function saveGDriveConfig(config) {
+  fs.writeFileSync(gdriveConfigPath, JSON.stringify(config, null, 2), 'utf8');
+}
+
+// Get Google OAuth Client instance
+function getOAuthClient(credentials) {
+  return new google.auth.OAuth2(
+    credentials.clientId,
+    credentials.clientSecret,
+    'http://localhost:54322/'
+  );
+}
+
+ipcMain.handle('get-gdrive-status', async () => {
+  return getGDriveConfig();
+});
+
+ipcMain.handle('unlink-gdrive', async () => {
+  if (fs.existsSync(gdriveConfigPath)) {
+    fs.unlinkSync(gdriveConfigPath);
+  }
+  return { success: true };
+});
+
+ipcMain.handle('link-google-drive', async (event, { clientId, clientSecret }) => {
+  return new Promise((resolve) => {
+    const credentials = { clientId, clientSecret };
+    const oauth2Client = getOAuthClient(credentials);
+
+    const authUrl = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'],
+      prompt: 'consent'
+    });
+
+    let authWindow = new BrowserWindow({
+      width: 600,
+      height: 700,
+      show: true,
+      title: 'Sign in with Google',
+      webPreferences: { nodeIntegration: false, contextIsolation: true }
+    });
+
+    authWindow.loadURL(authUrl);
+
+    // Start local server to capture redirect code
+    const server = http.createServer(async (req, res) => {
+      const query = url.parse(req.url, true).query;
+      if (query.code) {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(`
+          <html>
+            <body style="font-family:sans-serif; text-align:center; padding-top:50px; background:#f8fafc; color:#1e293b;">
+              <h2 style="color:#10b981;">Authentication Successful!</h2>
+              <p>You can close this window now and return to the application.</p>
+            </body>
+          </html>
+        `);
+
+        try {
+          const { tokens } = await oauth2Client.getToken(query.code);
+          oauth2Client.setCredentials(tokens);
+
+          // Fetch user profile email
+          const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+          const userInfo = await oauth2.userinfo.get();
+
+          const config = {
+            linked: true,
+            credentials,
+            tokens,
+            email: userInfo.data.email,
+            lastSync: ''
+          };
+          saveGDriveConfig(config);
+
+          setTimeout(() => {
+            if (!authWindow.isDestroyed()) authWindow.close();
+          }, 1000);
+
+          resolve({ success: true, email: userInfo.data.email });
+        } catch (err) {
+          resolve({ success: false, error: err.message });
+        } finally {
+          server.close();
+        }
+      } else {
+        res.writeHead(400, { 'Content-Type': 'text/html' });
+        res.end('Authorization code missing.');
+        server.close();
+        resolve({ success: false, error: 'Authorization code missing' });
+      }
+    });
+
+    server.listen(54322, '127.0.0.1');
+
+    authWindow.on('closed', () => {
+      server.close();
+      resolve({ success: false, error: 'User closed authentication window' });
+    });
+  });
+});
+
+ipcMain.handle('sync-database-to-cloud', async () => {
+  const config = getGDriveConfig();
+  if (!config.linked || !config.tokens) {
+    return { success: false, error: 'Google Drive is not linked.' };
+  }
+
+  try {
+    const oauth2Client = getOAuthClient(config.credentials);
+    oauth2Client.setCredentials(config.tokens);
+
+    // Handle token refresh automatically
+    oauth2Client.on('tokens', (newTokens) => {
+      config.tokens = { ...config.tokens, ...newTokens };
+      saveGDriveConfig(config);
+    });
+
+    const drive = google.drive({ version: 'v3', auth: oauth2Client });
+    const dbPath = path.join(__dirname, 'php-app', 'database.db');
+
+    if (!fs.existsSync(dbPath)) {
+      return { success: false, error: 'Local database.db file not found!' };
+    }
+
+    // 1. Search or Create folder "StockARB Backups"
+    let folderId = '';
+    const folderRes = await drive.files.list({
+      q: "mimeType='application/vnd.google-apps.folder' and name='StockARB Backups' and trashed=false",
+      fields: 'files(id)'
+    });
+
+    if (folderRes.data.files.length > 0) {
+      folderId = folderRes.data.files[0].id;
+    } else {
+      const folderMetadata = {
+        name: 'StockARB Backups',
+        mimeType: 'application/vnd.google-apps.folder'
+      };
+      const newFolder = await drive.files.create({
+        resource: folderMetadata,
+        fields: 'id'
+      });
+      folderId = newFolder.data.id;
+    }
+
+    // 2. Search or Create file "stock_backup_gdrive.db" inside that folder
+    let fileId = '';
+    const fileRes = await drive.files.list({
+      q: `name='stock_backup_gdrive.db' and '${folderId}' in parents and trashed=false`,
+      fields: 'files(id)'
+    });
+
+    const media = {
+      mimeType: 'application/octet-stream',
+      body: fs.createReadStream(dbPath)
+    };
+
+    if (fileRes.data.files.length > 0) {
+      fileId = fileRes.data.files[0].id;
+      // Update existing file
+      await drive.files.update({
+        fileId: fileId,
+        media: media
+      });
+    } else {
+      // Create new file
+      const fileMetadata = {
+        name: 'stock_backup_gdrive.db',
+        parents: [folderId]
+      };
+      const newFile = await drive.files.create({
+        resource: fileMetadata,
+        media: media,
+        fields: 'id'
+      });
+      fileId = newFile.data.id;
+    }
+
+    const timestamp = new Date().toLocaleString();
+    config.lastSync = timestamp;
+    saveGDriveConfig(config);
+
+    return { success: true, timestamp };
+  } catch (err) {
+    console.error('Google Drive Sync failed:', err);
+    return { success: false, error: err.message };
+  }
+});
+
+ipcMain.handle('restore-database-from-cloud', async () => {
+  const config = getGDriveConfig();
+  if (!config.linked || !config.tokens) {
+    return { success: false, error: 'Google Drive is not linked.' };
+  }
+
+  try {
+    const oauth2Client = getOAuthClient(config.credentials);
+    oauth2Client.setCredentials(config.tokens);
+
+    const drive = google.drive({ version: 'v3', auth: oauth2Client });
+    const dbPath = path.join(__dirname, 'php-app', 'database.db');
+
+    // 1. Search folder "StockARB Backups"
+    const folderRes = await drive.files.list({
+      q: "mimeType='application/vnd.google-apps.folder' and name='StockARB Backups' and trashed=false",
+      fields: 'files(id)'
+    });
+
+    if (folderRes.data.files.length === 0) {
+      return { success: false, error: '"StockARB Backups" folder not found in your Google Drive!' };
+    }
+    const folderId = folderRes.data.files[0].id;
+
+    // 2. Search file "stock_backup_gdrive.db"
+    const fileRes = await drive.files.list({
+      q: `name='stock_backup_gdrive.db' and '${folderId}' in parents and trashed=false`,
+      fields: 'files(id)'
+    });
+
+    if (fileRes.data.files.length === 0) {
+      return { success: false, error: '"stock_backup_gdrive.db" file not found in your Google Drive folder!' };
+    }
+    const fileId = fileRes.data.files[0].id;
+
+    // Stop PHP server temporarily to free SQLite file locks
+    if (phpServerProcess) {
+      phpServerProcess.kill();
+    }
+
+    // Download file content
+    const dest = fs.createWriteStream(dbPath);
+    const downloadRes = await drive.files.get(
+      { fileId: fileId, alt: 'media' },
+      { responseType: 'stream' }
+    );
+
+    await new Promise((resolve, reject) => {
+      downloadRes.data
+        .on('end', () => {
+          resolve();
+        })
+        .on('error', (err) => {
+          reject(err);
+        })
+        .pipe(dest);
+    });
+
+    // Restart PHP server
+    startPhpServer();
+
+    return { success: true };
+  } catch (err) {
+    console.error('Google Drive Restore failed:', err);
+    // Restart PHP server in case of failure to keep app running
+    startPhpServer();
+    return { success: false, error: err.message };
+  }
+});
+
+// ----------------------------------------------------
+// Software Update Logic
+// ----------------------------------------------------
 
 function checkUpdates() {
   const options = {
@@ -189,10 +475,12 @@ function createWindow() {
     minWidth: 1000,
     minHeight: 700,
     show: false,
+    icon: path.join(__dirname, 'php-app', 'assets', 'img', 'favicon.jpg'),
     backgroundColor: '#ffffff',
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js')
     }
   });
 

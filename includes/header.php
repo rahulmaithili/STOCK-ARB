@@ -37,6 +37,8 @@ try {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/custom.css?v=<?php echo time(); ?>">
+    <!-- Favicon Icon link -->
+    <link rel="icon" type="image/jpeg" href="<?php echo BASE_URL; ?>assets/img/favicon.jpg">
 </head>
 <body>
 
