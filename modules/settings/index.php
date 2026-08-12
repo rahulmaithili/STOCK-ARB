@@ -1,8 +1,22 @@
 <?php
 require_once dirname(dirname(__DIR__)) . '/config/db.php';
 require_once dirname(dirname(__DIR__)) . '/includes/functions.php';
+require_once dirname(dirname(__DIR__)) . '/config/recovery_util.php';
 
 require_login();
+
+// Handle AJAX Approval Code Generator
+if (isset($_GET['ajax_action']) && $_GET['ajax_action'] === 'generate_approval') {
+    header('Content-Type: application/json');
+    $req_code = $_GET['request_code'] ?? '';
+    if (!empty($req_code)) {
+        $app_code = generate_approval_code($req_code);
+        echo json_encode(['success' => true, 'approval_code' => $app_code]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Missing Request Code']);
+    }
+    exit();
+}
 $role = $_SESSION['user_role'] ?? 'staff';
 
 // Handle Database Download Backup BEFORE any HTML output
@@ -230,29 +244,60 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                     
                     <!-- Tab 1: Profile Settings (Change Password) -->
                     <div class="tab-pane fade show active" id="profile-panel" role="tabpanel" aria-labelledby="profile-tab">
-                        <div style="max-width: 500px;">
-                            <h5 class="fw-bold text-dark mb-4">Change User Password</h5>
-                            <form action="index.php" method="POST">
-                                <?php echo csrf_input(); ?>
-                                <input type="hidden" name="action" value="update_profile">
+                        <div class="row g-4">
+                            <!-- Left Side: Change Password -->
+                            <div class="col-12 col-md-6">
+                                <h5 class="fw-bold text-dark mb-4">Change User Password</h5>
+                                <form action="index.php" method="POST">
+                                    <?php echo csrf_input(); ?>
+                                    <input type="hidden" name="action" value="update_profile">
 
-                                <div class="mb-3">
-                                    <label for="current_password" class="form-label fw-semibold text-muted" style="font-size: 0.8rem;">CURRENT PASSWORD *</label>
-                                    <input type="password" class="form-control form-control-premium" id="current_password" name="current_password" required>
+                                    <div class="mb-3">
+                                        <label for="current_password" class="form-label fw-semibold text-muted" style="font-size: 0.8rem;">CURRENT PASSWORD *</label>
+                                        <input type="password" class="form-control form-control-premium" id="current_password" name="current_password" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="new_password" class="form-label fw-semibold text-muted" style="font-size: 0.8rem;">NEW PASSWORD *</label>
+                                        <input type="password" class="form-control form-control-premium" id="new_password" name="new_password" required>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="confirm_password" class="form-label fw-semibold text-muted" style="font-size: 0.8rem;">CONFIRM NEW PASSWORD *</label>
+                                        <input type="password" class="form-control form-control-premium" id="confirm_password" name="confirm_password" required>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-accent px-4 py-2">Update Password</button>
+                                </form>
+                            </div>
+                            
+                            <!-- Right Side: Reset Approval Generator (Admin Only) -->
+                            <?php if (is_admin()): ?>
+                            <div class="col-12 col-md-6 border-start ps-md-5">
+                                <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-user-shield me-2 text-primary"></i>Password Reset Approval</h5>
+                                <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 15px;">
+                                    Agar koi staff member apna password bhool jata hai aur aapko apna <strong>Request Code</strong> batata hai, toh use niche enter karke reset validation code generate karein:
+                                </p>
+                                
+                                <div class="bg-light p-4 rounded-4 border">
+                                    <div class="mb-3">
+                                        <label for="recovery_request_code" class="form-label fw-semibold text-muted mb-1" style="font-size: 0.76rem;">ENTER USER REQUEST CODE</label>
+                                        <input type="text" class="form-control form-control-premium" id="recovery_request_code" placeholder="e.g. 58392" maxlength="5">
+                                    </div>
+                                    <button type="button" class="btn btn-primary w-100 py-2.5 d-inline-flex align-items-center justify-content-center gap-2 fw-semibold" id="generate-approval-btn">
+                                        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Approval Code
+                                    </button>
+                                    
+                                    <div class="mt-4 text-center" id="approval-result-box" style="display: none;">
+                                        <span class="text-muted d-block mb-1" style="font-size: 0.8rem;">APPROVAL CODE FOR USER:</span>
+                                        <span class="fs-3 fw-bold text-success" id="approval-code-display" style="letter-spacing: 2px;">APP-00000</span>
+                                        <small class="text-muted d-block mt-2" style="font-size: 0.72rem; line-height: 1.4;">
+                                            User ko yeh 5-digit code batayein. Woh ise apne login recovery popup me enter karke naya password set kar sakega.
+                                        </small>
+                                    </div>
                                 </div>
-
-                                <div class="mb-3">
-                                    <label for="new_password" class="form-label fw-semibold text-muted" style="font-size: 0.8rem;">NEW PASSWORD *</label>
-                                    <input type="password" class="form-control form-control-premium" id="new_password" name="new_password" required>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label for="confirm_password" class="form-label fw-semibold text-muted" style="font-size: 0.8rem;">CONFIRM NEW PASSWORD *</label>
-                                    <input type="password" class="form-control form-control-premium" id="confirm_password" name="confirm_password" required>
-                                </div>
-
-                                <button type="submit" class="btn btn-accent px-4 py-2">Update Password</button>
-                            </form>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -545,6 +590,38 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                                     await window.electronAPI.unlinkGoogleDrive();
                                     refreshGDriveStatus();
                                 }
+                            });
+                        }
+
+                        // Generate Approval Code Action (Plan B Recover tool)
+                        const genBtn = document.getElementById('generate-approval-btn');
+                        if (genBtn) {
+                            genBtn.addEventListener('click', async () => {
+                                const reqCode = document.getElementById('recovery_request_code').value.trim();
+                                if (!reqCode) {
+                                    alert("Please enter a valid 5-digit Request Code.");
+                                    return;
+                                }
+
+                                genBtn.disabled = true;
+                                genBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+
+                                try {
+                                    const response = await fetch(`index.php?ajax_action=generate_approval&request_code=${reqCode}`);
+                                    const data = await response.json();
+                                    
+                                    if (data.success) {
+                                        document.getElementById('approval-code-display').textContent = 'APP-' + data.approval_code;
+                                        document.getElementById('approval-result-box').style.display = 'block';
+                                    } else {
+                                        alert("Error: " + data.error);
+                                    }
+                                } catch (e) {
+                                    alert("Failed to connect to backend generator.");
+                                }
+
+                                genBtn.disabled = false;
+                                genBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Approval Code';
                             });
                         }
                     });
