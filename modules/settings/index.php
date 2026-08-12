@@ -236,6 +236,11 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                             <i class="fa-solid fa-database me-1"></i> Database Backup & Restore
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation" id="lan-tab-item" style="display: none;">
+                        <button class="nav-link fw-bold border-0 px-4 py-2" id="lan-tab" data-bs-toggle="tab" data-bs-target="#lan-panel" type="button" role="tab" aria-controls="lan-panel" aria-selected="false">
+                            <i class="fa-solid fa-network-wired me-1"></i> LAN Connection
+                        </button>
+                    </li>
                 </ul>
             </div>
             
@@ -469,15 +474,82 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                         </div>
                     </div>
 
+                    <!-- Tab 4: LAN Multi-PC Sync (Server/Client Setup) -->
+                    <div class="tab-pane fade" id="lan-panel" role="tabpanel" aria-labelledby="lan-tab">
+                        <div class="row g-4 p-2">
+                            <div class="col-12 col-md-7">
+                                <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-network-wired me-2 text-primary"></i>LAN Network Settings</h5>
+                                <p class="text-muted" style="font-size: 0.85rem; line-height: 1.5;">
+                                    Apne local Wi-Fi / Router network par sabhi computers ko aapas me link karke ek hi central database par chalane ke liye settings save karein.
+                                </p>
+
+                                <div class="bg-light p-4 rounded-4 border">
+                                    <!-- Mode Selection -->
+                                    <div class="mb-3">
+                                        <label for="network_mode" class="form-label fw-bold text-dark mb-1" style="font-size: 0.82rem;">CONNECTION MODE</label>
+                                        <select class="form-select form-control-premium" id="network_mode">
+                                            <option value="standalone">Standalone Mode (PC runs local database - Default)</option>
+                                            <option value="client">Client Mode (PC connects to Main Server PC)</option>
+                                        </select>
+                                        <small class="text-muted d-block mt-1" style="font-size: 0.76rem; line-height: 1.4;">
+                                            * Standalone: Yeh PC khud apna main server chalayega.<br>
+                                            * Client: Yeh PC kisi doosre server computer ke database se connect karega.
+                                        </small>
+                                    </div>
+
+                                    <!-- Server IP Input (Hidden/Disabled unless client) -->
+                                    <div class="mb-4" id="server-ip-container" style="display: none;">
+                                        <label for="server_ip" class="form-label fw-bold text-dark mb-1" style="font-size: 0.82rem;">MAIN SERVER PC IP ADDRESS *</label>
+                                        <input type="text" class="form-control form-control-premium" id="server_ip" placeholder="e.g. 192.168.1.15">
+                                        <small class="text-muted d-block mt-1" style="font-size: 0.74rem;">
+                                            Main Server PC ki settings me likha hua IP Address yahan enter karein.
+                                        </small>
+                                    </div>
+
+                                    <button type="button" class="btn btn-accent px-4 py-2.5 fw-semibold d-inline-flex align-items-center gap-2" id="save-network-btn">
+                                        <i class="fa-solid fa-floppy-disk"></i> Save & Apply Configuration
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-5 border-start ps-md-4">
+                                <h5 class="fw-bold text-dark mb-3"><i class="fa-solid fa-circle-info me-2 text-info"></i>Host Identification</h5>
+                                
+                                <div class="alert alert-info py-3 rounded-4 mb-4">
+                                    <span class="text-muted d-block mb-1" style="font-size: 0.78rem;">THIS PC'S LOCAL IP ADDRESS (LAN):</span>
+                                    <strong class="fs-4 text-dark" id="display-local-ip">Checking...</strong>
+                                    <small class="text-muted d-block mt-2" style="font-size: 0.74rem; line-height: 1.4;">
+                                        Client computers par settings config set karte samay, unhe connect karne ke liye **yahi IP Address** enter karna hoga.
+                                    </small>
+                                </div>
+
+                                <div class="bg-light p-3 rounded-4 border">
+                                    <h6 class="fw-bold text-dark mb-2" style="font-size: 0.84rem;"><i class="fa-solid fa-check-double text-success me-2"></i>Quick Instructions:</h6>
+                                    <ol class="text-muted ps-3 mb-0" style="font-size: 0.78rem; line-height: 1.5;">
+                                        <li class="mb-1.5">Dono PCs **same Wi-Fi router** se connected hone chahiye.</li>
+                                        <li class="mb-1.5">Main PC (Server) par is panel me dikh raha IP Address copy karein.</li>
+                                        <li class="mb-1.5">Baki PCs (Client) me aakar Mode ko **Client** karein, aur wahi IP save kar dein.</li>
+                                        <li>Client PCs automatic Main Server PC ke data se realtime me sync ho jayenge!</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <script>
                     document.addEventListener("DOMContentLoaded", function() {
                         // Check if running inside Electron desktop app wrapper
                         if (window.electronAPI) {
                             document.getElementById('gdrive-sync-section').style.display = 'block';
                             document.getElementById('gdrive-web-notice').style.display = 'none';
+                            
+                            // Show LAN Setup tab menu
+                            document.getElementById('lan-tab-item').style.display = 'block';
 
                             // Load current Google Drive connection status
                             refreshGDriveStatus();
+                            // Load current LAN connection status
+                            refreshNetworkStatus();
                         }
 
                         async function refreshGDriveStatus() {
@@ -622,6 +694,58 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
 
                                 genBtn.disabled = false;
                                 genBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Approval Code';
+                            });
+                        }
+
+                        // LAN Network Config Actions
+                        async function refreshNetworkStatus() {
+                            const net = await window.electronAPI.getNetworkStatus();
+                            document.getElementById('display-local-ip').textContent = net.localIp || '127.0.0.1';
+                            document.getElementById('network_mode').value = net.mode || 'standalone';
+                            document.getElementById('server_ip').value = net.serverIp || '';
+                            
+                            if (net.mode === 'client') {
+                                document.getElementById('server-ip-container').style.display = 'block';
+                            } else {
+                                document.getElementById('server-ip-container').style.display = 'none';
+                            }
+                        }
+
+                        const netModeDropdown = document.getElementById('network_mode');
+                        if (netModeDropdown) {
+                            netModeDropdown.addEventListener('change', (e) => {
+                                if (e.target.value === 'client') {
+                                    document.getElementById('server-ip-container').style.display = 'block';
+                                } else {
+                                    document.getElementById('server-ip-container').style.display = 'none';
+                                }
+                            });
+                        }
+
+                        const saveNetBtn = document.getElementById('save-network-btn');
+                        if (saveNetBtn) {
+                            saveNetBtn.addEventListener('click', async () => {
+                                const mode = document.getElementById('network_mode').value;
+                                const serverIp = document.getElementById('server_ip').value.trim();
+                                
+                                if (mode === 'client' && !serverIp) {
+                                    alert("Please enter a valid Server IP Address.");
+                                    return;
+                                }
+
+                                const config = { mode, serverIp };
+                                saveNetBtn.disabled = true;
+                                saveNetBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+                                const res = await window.electronAPI.saveNetworkConfig(config);
+                                if (res.success) {
+                                    alert("LAN Configuration saved successfully! The application will restart to apply the settings.");
+                                    window.location.reload();
+                                } else {
+                                    alert("Save Failed.");
+                                }
+                                saveNetBtn.disabled = false;
+                                saveNetBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save & Apply Configuration';
                             });
                         }
                     });
